@@ -19,6 +19,8 @@
 \newcommand{\N}{{\mathbb N}}
 \newcommand{\E}{{\mathbb E}}
 
+\newcommand{\ex}{{\mathbb E}}
+
 \newcommand{\U}{{\bm U}}
 \newcommand{\V}{{\bm V}}
 \newcommand{\W}{{\bm W}}
@@ -43,24 +45,27 @@
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
 
-\newcommand{\ans}[2]{{\leavevmode\color{OliveGreen}#2}} % no answers
-% \newcommand{\ans}[2]{{\leavevmode\color{OliveGreen}#1}} % answers
-
 \newcommand{\red}[1]{{\textcolor{Red}{#1}}}
 \definecolor{myred}{HTML}{C82506}
 \definecolor{myblue}{HTML}{0365C0}
 \definecolor{mygreen}{HTML}{00882B}
+\definecolor{mydarkgreen}{HTML}{0B5D18}
 \definecolor{myorange}{HTML}{DE6A10}
 \definecolor{mypurple}{HTML}{773F9B}
 \definecolor{myyellow}{HTML}{DCBD23}
 
 \newcommand{\rc}[1]{{\textcolor{myred}{ #1 }}}
 \newcommand{\gc}[1]{{\textcolor{mygreen}{ #1 }}}
+\newcommand{\dgc}[1]{{\textcolor{mydarkgreen}{ #1 }}}
 \newcommand{\bc}[1]{{\textcolor{myblue}{ #1 }}}
 \newcommand{\kc}[1]{{\textcolor{Gray}{ #1 }}}
 \newcommand{\oc}[1]{{\textcolor{myorange}{ #1 }}}
 \newcommand{\pc}[1]{{\textcolor{mypurple}{ #1 }}}
 \newcommand{\yc}[1]{{\textcolor{myyellow}{ #1 }}}
+
+%\newcommand{\ans}[2]{{\leavevmode\color{mydarkgreen}#2}} % no answers
+\newcommand{\ans}[2]{{\leavevmode\color{mydarkgreen}#1}} % answers
+
 
 \newcommand{\kp}{{\kc{\partial}}}
 % Exam questions

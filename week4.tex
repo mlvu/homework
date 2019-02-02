@@ -8,10 +8,63 @@
 \usepackage{xfrac}
 
 \title{Week 4: Naive Bayes, Entropy and Backpropagation}
+\author{\url{http://mlvu.github.io}}
 
 \begin{document}
 
 \maketitle
+
+\section{preliminaries: probability}
+
+Before we start, it's helpful to review our general grasp of probability. If the exercises below give you any trouble we recommend that you follow the links provided to brush up a little.
+
+\begin{Exercise}
+\begin{enumerate}
+\item In a few sentences, explain the difference between the Frequentist and the Bayesian interpretation of probability. \ans{A frequentist considers a probability an objective value: a property of the universe that can be measured by repeated experimentation, like measuring the probability that a bent coin lands heads, by flipping it repeatedly. A Bayesian considers probability an expression of uncertain belief. A bayesian can talk about the probability that "John is having an affair". To a frequentist this is nonsense, because John is either having an affair or he isn't.}{}
+\item What is the difference between a sample space and an event space? \ans{A sample space is a space of individual things that can happen (like a die landing on a 6) and an event space is a space of sets of things from the sample space (like a die landing on an even number). Technically, an event space should be a sigma-algebra of a sample space, but for discrete probability distributions, we can think of the event space as a the powerset of the sample space. For continuous probability distributions, we can ignore the technical details.}{}
+\item What is the difference between a probability distribution and a probability density function? \ans{A probability function assigns probabilities to events. If the sample space is continuous (like in the case of a normal distribution) all atomic events like "John's length is exactly 2 meters" will have zero probability. Instead, we define a probability density function. We then get the probability of a subset of the sample space, like "John's height is between 1.95 and 2.05", by integrating over the probability density function.}{}
+\end{enumerate}	
+\end{Exercise}
+
+\begin{Exercise}
+\noindent In the following, $p$ is a  probability function and $A$ and $B$ are events. Which of the following are true?
+\begin{enumerate}
+	\item Joint probability is symmetric: $p(A, B) = p(B, A)$. \ans{True}{}
+	\item Conditional probability is symmetric $p(A \mid B) = p(B \mid A)$. \ans{False. This is not true in general (although it may be true for specific $A$ and $B$).}{}
+	\item Two random variables $X$ and $Y$ are conditionally independent on a third $Z$. Once we know $X$ and $Y$, we also know the value of $Z$. \ans{False.}{}
+	\item Two random variables $X$ and $Y$ are conditionally independent on a third $Z$. Once we know $Z$, also knowing $X$ will tell us nothing extra about $Y$. \ans{True: conditional independence means that given the value of the conditional, $X$ and $Y$ are independent (so knowing the value of one reveals nothing about the other).}{}
+\end{enumerate}	
+\end{Exercise}
+
+\begin{Exercise}
+
+\noindent Assume that the probability that a given patient has diabetes is $0.01$. We have a test for diabetes with a false positive rate of $0.05$: if a patient has no diabetes, the test diagnoses it 5\% of the time. The false negative rate is $0.1$. 
+You are a doctor, and you administer the test to patient (knowing nothing else). The test says she has diabetes. What is the probability that she doesn't? Hint: this is a question about Bayes' rule.
+Reflect on the result. Is this what you would've expected? If not, where does the unexpected result come from?
+
+\ans{Let's write down the given probabilities first. We'll use $D$ and $\neg D$ for the events that the patient has and doesn't have diabetes respectively. We'll use $T$ for the event of the test \emph{saying} that the patient has diabetes and $\neg T$ for the test saying that she doesn't.
+We are given $p(D) = 0.01$, $p(T \mid \neg D) = 0.05$ and $p(\neg T \mid D) = 0.1$. We can derive $p(\neg T\mid \neg D) = 0.95$ and $p(T \mid D) = 0.9$.
+Now, we want to know $p(\neg D \mid T)$. We'll use Bayes' rule to reverse the probability and the conditional:
+\begin{align*}
+p(\neg D \mid T) &= \frac{p(T \mid \neg D) p(\neg D)}{p(T)} \\
+&= \frac{p(T \mid \neg D) p(\neg D)}{p(T, D) + p(T, \neg D)} \\
+&= \frac{p(T \mid \neg D) p(\neg D)}{p(T \mid D)p(D) + p(T \mid \neg D)p(\neg D)} \\
+&= \frac{0.05 \times 0.99}{0.9 \times 0.01 + 0.05 \times 0.99} \\
+&= \frac{5 \times 99}{ 5\times 99 + 90} \approx 0.85
+\end{align*}
+Whether you expected this result is up to you, of course, but it's certainly not what you want form a test like this. The false positive and false negative rates don't seem so high as to make the test useless. In the last line, I've multiplied everything by 100 so you can see where the imbalance comes from: the high prior probability that someone doesn't have diabetes dominates. 
+In order for the test to be reliable, the false positive rate needs to be low enough to cancel to make the numerator small in proportion to the denominator.
+}{}
+\end{Exercise}
+
+
+More practice? Follow these links:
+\begin{enumerate}
+\item \url{https://betterexplained.com/articles/a-brief-introduction-to-probability-statistics/}
+\item \url{https://www.khanacademy.org/math/probability/probability-geometry/probability-basics/a/probability-the-basics}
+\item \url{http://dept.stat.lsa.umich.edu/~moulib/probrefresh.pdf}
+\end{enumerate}
+
 
 \section{Naive Bayes}
 

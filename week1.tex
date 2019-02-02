@@ -2,17 +2,177 @@
 
 \input{preamble}
 
-\title{Week 1: preliminaries}
+\title{week 1: preliminaries}
+\author{\url{http://mlvu.github.io}}
 
 \begin{document}
 
 \maketitle
 
-\noindent This week, the homework will be a review of the subjects you should be familiar with already. Machine learning is built mostly on three fields: \emph{Linear Algebra}, \emph{Calculus} and \emph{Probability Theory}. Luckily, we only use a very limited number of concepts from each.
+\noindent This week, the homework will be a review of subjects you should be familiar with already. Machine learning is built mostly on three types of math: \emph{Linear Algebra}, \emph{Calculus} and \emph{Probability Theory}. Luckily, we only use a very limited number of concepts from each, so even if you don't know these subjects or don't know them well, it shouldn't take too much work to get up to speed.
 
-These exercises should give you an indication of whether you have a sufficient grasp of these subjects. If you struggle with any of the exercises below, please follow the links provided to brush up, before continuing with next week's homework. 
+Here we'll review some linear algebra and some calculus, saving the probability for later. We'll also review three concepts that you should become very familiar with to follow machine learning theory: sums, expectations and logarithms. Even if you know these in principle, you should take the time to get comfortable with them.
 
-For general knowledge questions: don't worry if you don't know everything by heart, but it shouldn't take you too long to look the answers up.
+This homework should give you an indication of whether you have a sufficient grasp of the preliminaries. If you struggle with anything, please follow the links provided to brush up, before continuing with next week's homework. 
+
+\section{Sums, expectations and logarithms}
+
+You've probably encountered all three of these before. However, in the lectures, we will often see long derivations which require you to to be very familiar with these in order to follow all the steps. If you find yourself baffled by some of the math in the lecture, you can probably get a lot closer by just practising your sums, expectations and logarithms a little.
+
+\paragraph{Sums} Sigma ($\Sigma$) notation is simply a concise way of writing down long sums. Assume we have a list of numbers $a_\rc{1}, a_\rc{2}, a_\rc{3}, a_\rc{4}, a_\rc{5}$. We can write:
+\[
+a_\rc{1} + a_\rc{2} + a_\rc{3} + a_\rc{4} + a\rc{5}
+\]
+but we can also write
+\[
+\sum_{\rc{i}=1}^5 a_\rc{i} \;\;\;\;\text{or}\;\;\;\;\textstyle\sum_{\rc{i}=1}^5 a_\rc{i} 
+\]
+The bit below the sigma tells you which symbol is used as an index ($\rc{i}$) to iterate over the elements to sum over, and what the first value is ($1$). The bit above the sigma tells you what the last value of the index is. \footnotemark
+
+\footnotetext{If you're an experienced programmer, it may be helpful to think of this as a \texttt{for} loop: something like $\texttt{for(int \rc{i} = 1; \rc{i} < 6; \rc{i}++)}\ldots$.}
+
+Since this is a very dense notation, it's often simplified by leaving out the start and end values, assuming that they can be figured out from context:
+\[
+\sum_\rc{i} a_\rc{i}
+\]
+Sums can be nested as well (using a sum within a sum). This is not a special notation, it simply follows from the definition. You  can `unpack' these by turning the sigmas into a regular sum one by one:
+\begin{align*}
+&\sum_{\rc{i}=1}^{2} \sum_{\bc{j}=1}^{3} a_\rc{i} b_\bc{j} \\ 
+ &= \sum_{\bc{j}=1}^{3} a_\rc{1} b_\bc{j} + \sum_{\bc{j}=1}^{3} a_\rc{2} b_\bc{j} \\
+ &= (a_\rc{1} b_\bc{1} + a_\rc{1}b_\bc{2} + a_\rc{1}b_\bc{3}) + (a_\rc{2}b_\bc{1} + a_\rc{2}b_\bc{2} + a_\rc{2}b_\bc{3}) \\
+\end{align*}
+For nested sums, the indices are often combined into a single sigma:
+\[
+\sum_{\rc{i}, \bc{j}} a_\rc{i} b_\bc{j}= \sum_\rc{i} \sum_\bc{j} a_\rc{i} b_\bc{j} 
+\]
+
+\begin{Exercise}
+\noindent Let $x_\rc{1} = 5, x_\rc{2} = 1, x_\rc{3} = 4, x_\rc{4} = 1, x_\rc{5} = 3$. Compute the following values:
+\begin{enumerate}
+	\item $\sum_\rc{i} x_\rc{i}$ \ans{$= 5 + 1 + 4 + 1 + 3 = 14$}{}
+	\item $\sum_\rc{i} 2 \cdot x_\rc{i}$ \ans{$= 10 + 2 + 8 + 2 + 6 = 28$}{}
+	\item $2 \cdot \sum_\rc{i} x_\rc{i}$ \ans{$= 2 \cdot (5 + 1+ 4 + 1 + 3) = 28$}{}
+	\item $\sum_{\rc{i}=1}^{3} x_\rc{i}$ \ans{$= (5 + 1 + 4) = 10 $}{}
+	\item $\sum_{\rc{i}=1}^{x_5} x_\rc{i}$ \ans{$= (5 + 1 + 4) = 10 $}{}
+	\item $\sum_{\rc{i}=1}^{3} i \cdot x_\rc{i}$ \ans{$= (1 \cdot 5 + 2 \cdot 1+ 3\cdot 4) = 24 $}{}
+\end{enumerate}
+\end{Exercise}
+
+\begin{Exercise}
+\noindent Which of the following are always true? If you struggle, try rewriting  as a normal sum, and using what you already know about sums. The variable $\kc{c}$ is a constant.
+\begin{enumerate}
+\item $\sum_\rc{i} \kc{c}y_\rc{i} = \kc{c}\sum_\rc{i} y_\rc{i}$ \ans{True. This is the equivalent of ``moving a constant outside brackets.'' For instance $cx + cy + cz = c(x+ y + z)$}{}
+\item $\sum_\rc{i} (\kc{c} + y_\rc{i}) = \kc{c} + \sum_\rc{i} y_\rc{i}$ \ans{False. On the left $\kc{c}$ is added to every term, and on the right it is added only once.}{}
+\item $\sum_{\rc{i}=1}^\yc{n} (\kc{c} + y_\rc{i}) = \yc{n}\kc{c} + \sum_{\rc{i}=1}^\yc{n} y_\rc{i}$ \ans{True. On the left we add $c$ $n$ times, which is the same as adding $nc$ once.}{}
+\item $\sum_\rc{i} (x_\rc{i} + y_\rc{i}) = \left(\sum_\rc{i} x_\rc{i}\right) + \left(\sum_\rc{i} y_\rc{i}\right)$ \ans{True. Think of this as re-arranging the terms of the sum: $(x_1 + y_1 + x_2 + y_2 + x_3 + y_3) = (x_1 + x_2 + x_3) + (y_1 + y_2 + y_3)$}{}
+\item $\sum_\rc{i} \sum_\bc{j} a_\rc{i} b_\bc{j} = \sum_\bc{j} \sum_\rc{i} a_\rc{i}b_\bc{j}$ \ans{True. Looping over all $a$ and summing each with every $b$  is the same as looping over all $b$ and summing each with every $a$.}{}
+\item $\sum_\rc{i} a_\rc{i}b_\rc{i} = \left(\sum_\rc{i} a_\rc{i} \right) \left( \sum_\rc{i} b_\rc{i}\right)$ \ans{False. $1\cdot 4 + 3 \cdot 2 \neq (1+3)(4+2)$}{}
+
+\end{enumerate}
+
+\end{Exercise}
+
+\noindent It can be a little ambiguous where the sum operator ends. For instance, in $\sum_\rc{i} x_\rc{i} + \kc{c}$, we don't know whether the $\kc{c}$ should be added once, or for every term in the sum.  There's no official standard, and authors should make sure to write sums in an unambiguous way. For instance $\sum_\rc{i} \kc{c} + x_\rc{i}$ or $\kc{c} + \sum_\rc{i} x_\rc{i}$ or simply $\sum_\rc{i} (\kc{c} + x_\rc{i})$.
+
+The capital pi $\Pi$ works in exactly the same way as the $\Sigma$ operator, but describes a \emph{product}:
+\[
+\prod_{\rc{i}=1}^4 \rc{i} = 24
+\]
+
+More practice? Try these links:
+\begin{itemize}
+\item \url{https://www.khanacademy.org/math/algebra2/sequences-and-series/alg2-sigma-notation/e/evaluating-basic-sigma-notation}
+\item \url{https://www.mathsisfun.com/algebra/sigma-notation.html}
+\item \url{https://www.youtube.com/watch?v=TjMLzklnn2c}	
+\end{itemize}
+
+
+\paragraph{Expectations} An expectation is nothing more than a sum, with each term weighted by a probability. Let's say you are playing a game where you roll a die, and you receive the number of  eyes rolled in euros. Your expected reward is:
+\[
+\frac{1}{6} \cdot 1 + \frac{1}{6} \cdot 2 + \frac{1}{6} \cdot 3 + \frac{1}{6} \cdot 4 + \frac{1}{6} \cdot 5 + \frac{1}{6} \cdot 6 = \frac{21}{6} = 3.5
+\]
+In general, if you have a random variable $\bc{V}$ (an experiment with a numeric outcome) which has possible outcomes $1, 2, \ldots$ with associated values $v_1, v_2, \ldots$ and associated probabilities $p_1, p2, \ldots$, the \textbf{expected value} of the experiment is written as
+\begin{equation}
+\ex (\bc{V}) = \sum_\rc{i} p_\rc{i}i v_\rc{i} \label{line:exp}
+\end{equation}
+The brackets can be omitted at the author's discretion. If multiple probability distributions are applicable, the choice of distribution may be indicated in the subscript $\ex_p \bc{V}$.
+
+We can also extend the experiment by applying a function to the outcome, and computing the expected value over the result. Say that $\bc{V}$ describes a betting game with winnings $v_\rc{i}$, but you will have to pay a 20\% tax over whatever you win. Then, the expectation for the amount of money you actually get to keep is 
+
+\[
+\ex (\kc{0.8} \cdot \bc{V})= \sum_\rc{i} p_\rc{i} \cdot \kc{0.8} \cdot v_\rc{i} 
+\]
+
+\begin{Exercise}
+\noindent Because the expectation is basically a sum, most of the things that hold for sums, also hold for expectations.
+Show that the following hold by applying what you know about sums. If you get stuck, try expanding the expectation into a sum, as in (\ref{line:exp}).
+
+\begin{enumerate}
+	\item $\ex (\kc{c}\cdot \bc{V}) = \kc{c} \cdot \ex(\bc{V})$ (homogeneity) \ans{
+\begin{align*}
+	\ex_\bc{V} (\kc{c}\cdot \bc{V})
+	= \sum_\rc{i} p_\rc{i} \kc{c} v_\rc{i} 
+	= \kc{c} \sum_\rc{i} p_\rc{i} v_\rc{i}
+ 	= \kc{c} \cdot \ex_\bc{V}(\bc{V})
+\end{align*}
+}{} 
+\item Let $\bc{V}$ and $\rc{W}$ have different numeric values, $\bc{v}_i$ and $\rc{w}_i$, for outcomes with the same probability $p_i$. Then $\ex(\bc{V}) + \ex(\rc{W}) = \ex(\bc{V} + \rc{W})$ (additivity) \label{line:sum} \ans{
+\begin{align*}
+	\ex&(\bc{V}) + \ex(\rc{W}) \\
+	&= \sum_i p_i \bc{v_i}  + \sum_i p_i \rc{w_i} \\
+	&= \sum_i p_i \bc{v_i}  + p_i \rc{w_i} = \sum_i p_i (\bc{v_i}  + \rc{w_i})\\
+	&= \ex(\bc{V} + \rc{W})
+\end{align*}
+}{} 
+\item $\ex(\bc{V}) + \ex(\sin(\bc{V})) = \ex(\bc{V} + \sin(\bc{V}))$ \label{line:sum} \ans{This follows directly from additivity (just set $\rc{W} = \sin{\bc{V}}$)}{} 
+\item $\ex\left((\bc{V} - \ex\bc{V})^2\right) = \ex(\bc{V}^2) - (\ex\bc{V})^2 $ \label{line:variance} \ans{
+\begin{align*}
+	\ex&\left((\bc{V} - \ex\bc{V})^2\right) &  \\ 
+	&=\ex\left(\bc{V}^2 - 2\bc{V}\ex\bc{V} + (\ex\bc{V})^2)\right) & \kc{\text{expand:} (a+b)^2 = a^2 + 2ab + b^2} \\
+	&=\ex(\bc{V}^2) - 2\ex(\bc{V})\ex(\bc{V}) + (\ex\bc{V})^2& \kc{\text{use additivity \& homogeneity}} \\	
+	&=\ex(\bc{V}^2) - 2(\ex\bc{V})^2 + (\ex\bc{V})^2&  \\	
+	&= \ex(\bc{V}^2) - (\ex\bc{V})^2 &
+\end{align*}
+}{}
+
+\end{enumerate}
+\end{Exercise}
+If your outcomes form a \emph{continuum}, like real-valued numbers (e.g. if you sample from a normal distribution), the expectation is defined with an integral instead of a sum ($\ex_\bc{V} = \int_\rc{x} p(\rc{x})\bc{v}(\rc{x}) \kc{dx}$). Since the integral has most of the same properties as the sum, you can use both types of expectation in the same way. \footnote{In fact, we use this trick in the course to hide some of the complexity: by talking about expectations without unpacking the notations, we can discuss many aspects of distributions on continuous spaces, without ever using integrals.}
+
+More practice? Try these links:
+\begin{itemize}
+\item \url{https://www.khanacademy.org/math/probability/probability-geometry/expected-value-geo/a/expected-value-basic}	
+\end{itemize}
+
+\paragraph{Logarithms} The \emph{logarithm} is nothing more than the inverse of the exponent. If $\rc{y} = b^\bc{x}$ then $\bc{x} = \log_b \rc{y}$. 
+
+Since $100 = 10\cdot 10 = 10^2$, $1000 = 10 \cdot10\cdot 10^3$ and so on, $log_{10} x$ gives us an indication of the \emph{order of magnitude} (essentially the number of digits) of $x$. For instance $log_10 314 \approx 2.5$ and  $log_10 31400 \approx 4.5$. In other words, if two numbers have the same order or magnitude, the difference between their logarithms will be at most 1. This also works for numbers smaller than one: $log_10 0.1 = -1$, $log_10 0.01 = -2$, $log_10 0.001 = -3$ and so on. 
+For bases other than 10, it's not quite so neat, but the same principle holds that all numbers of single order of magnitude are squeezed into a constant-size interval. 
+
+There are two main reasons why it's such a useful function:
+\begin{itemize}
+\item It allows us to use the limited-precision representations available in computers to accurately manipulate very small and very large numbers. This is useful, for instance, in representing probabilities. Since our probabilities are usually guesses anyway, we don't care as much about the difference between 0.0004 and 0.00035as we do about the difference between $10^-21$ and $10^-24$. This means that it's often much better to store the logarithm of the probability rather than the probability itself. 
+\item Taking the logarithm \textbf{turns product into a sum}: \[\log (\rc{a}\bc{b}\gc{c}) = \log \rc{a} + \log \bc{b} + \log \gc{c}\] Sums are much easier to analyze and manipulate. This can be a tremendous help in working out derivates, or probabilities.
+\end{itemize}
+
+\begin{Exercise}
+\noindent Which of the following are true for all $\bc{a}, \oc{b}$? If true show why, if not, give a counterexample.
+
+\begin{enumerate}
+\item $\log_\oc{b} \left(\oc{b}^\bc{a}\right) = \bc{a}$ \label{line:cancel}\ans{True. If $\log_\oc{b} \left(\oc{b}^\bc{a}\right) = x$, then by the definition of the logarithm $\oc{b}^x = \oc{b}^\bc{a}$, so $x=\bc{a}$.}{}
+\item $\log \bc{a} + \log \oc{b} = \log (\bc{a}\oc{b})$ \label{line:mult} \ans{True. $c^\bc{a} + c^\oc{b} = c^{\bc{a} + \oc{b}}$. Take $\log_c$ on both sides, and apply \ref{line:cancel}.}{}
+\item $\log (\bc{a}^\oc{b}) = \oc{b} \log (\bc{a})$ \ans{True. \\$\log(\bc{a}^\oc{b}) = \log(\prod_{i=1}^\oc{b}\bc{a}) = \sum_{i=1}^\oc{b} \log \bc{a} = \oc{b} \log\bc{a}$}{}
+\item $\log (\bc{a} + \oc{b}) = \log(\oc{b}) \cdot \log(\bc{a})$ \ans{False. If you see a sum inside a logarithm there's (sadly) no straightforward way to take it outside the log. Counterexample $\log_{10}(10 + 10) \neq \log_{10}(10) \cdot \log_{10}(10) $}{}
+\item $\log (\bc{a}/\oc{b}) = \log (\bc{a}) - \log{\oc{b}}$ \ans{True. \\$\log (\bc{a}/\oc{b}) = \log (\bc{a} \frac{1}{\oc{b}}) = \log (\bc{a} \oc{b}^{-1}) = \log \bc{a} +  \log (\oc{b}^{-1})= \log \bc{a} + (-1) \log (\oc{b})$}{}
+\end{enumerate}
+
+\end{Exercise}
+More practice? Try these links:
+\begin{itemize}
+\item \url{http://www.oxfordmathcenter.com/drupal7/node/532}
+\item \url{https://www.khanacademy.org/math/algebra2/exponential-and-logarithmic-functions}
+\item \url{https://study.com/academy/lesson/exponentials-and-logarithms-graphing-and-property-review.html}
+\end{itemize}
 
 \section{Linear Algebra}
 
@@ -27,7 +187,6 @@ In all homework and lectures, bold lowercase letters like $\x$ indicate a vector
 \item $\z = \y^T\x$ \ans{The vector $\z$ is defined as the the transposed vector $\y$ times the vector $\x$. This is also known as the \emph{dot product} of $\x$ and $\y$.}{}
 \item $\W \in \R^{5 \times 4}$ \ans{$\W$ is a matrix with 5 rows, and 4 columns.}{}
 \end{enumerate}
-
 Hint: if you're not sure, see if you can find the symbols in this page: \url{https://en.wikipedia.org/wiki/List_of_mathematical_symbols}. Even if that doesn't explain it fully, it may provide you with some keywords to google.
 \end{Exercise}
 
@@ -49,7 +208,7 @@ Hint: if you're not sure, see if you can find the symbols in this page: \url{htt
 \ans{Here is a good visual illustration of matrix multiplication.\footnote{Source: This file was derived from:  Matrix multiplication diagram.svg, CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=15175268, by user Bilou}
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.7\linewidth]{matmult}
+\includegraphics[width=0.7\linewidth]{matmul}
 \caption{Matrix multiplication}
 \end{figure}
 \noindent Note that the first matrix must have the same number of columns, as the second has rows. The other dimensions can be chosen freely.}{}
@@ -58,13 +217,13 @@ Hint: if you're not sure, see if you can find the symbols in this page: \url{htt
 \noindent Which of the following is true?
 	
 \begin{enumerate}
-\item Let $\U = \V\W$ for matrices $\U$, $\V$, $\W$. $\U_{ij}$ is the dot product of the $i$-th column of $\V$ and the $j$-th column of $\W$. \ans{False}{}
-\item Let $\U = \V\W$ for matrices $\U$, $\V$, $\W$. $\U_{ij}$ is the dot product of the $i$-th row of $\V$ and the $j$-th column of $\W$. \ans{True}{}
+\item Let $\U = \bc{\V}\oc{\W}$ for matrices $\U$, $\bc{\V}$, $\oc{\W}$. $\U_{\rc{i}\gc{j}}$ is the dot product of the $\rc{i}$-th column of $\bc{\V}$ and the $\gc{j}$-th column of $\oc{\W}$. \ans{False}{}
+\item Let $\U = \bc{\V}\oc{\W}$for matrices $\U$, $\bc{\V}$, $\oc{\W}$. $\U_{\rc{i}\gc{j}}$  is the dot product of the $\rc{i}$-th row of $\bc{\V}$ and the $\gc{j}$-th column of $\oc{\W}$. \ans{True}{}
 \item Matrix multiplication is \emph{commutative}. \ans{False. It is not always true that $\V\W = \W\V$.}{}
 \item Matrix multiplication is \emph{distributive}. \ans{True. Multiplication can always be \emph{distributed} over a sum: $\U(\V+\W) = \U\V + \U\W$ and $(\V+\W)\U = \V\U + \W\U$. Note that the order needs to be maintained: \red{$\U(\V+\W) = \V\U + \W\U$} does \textbf{not} hold for all matrices.}{}
 
 \item Matrix multiplication is \emph{associative}. \ans{True. Multiplying $\U$ by $\V$ and multiplying the result by $\W$ is the same as multiplying $\U$ by the result of multiplying $\V$ by $\W$: $(\U\V)\W) = \U(\V\W)$}{}
-\item There exist matrices $\U$ and $\V$ such that $\U\V = \V\U$. \ans{True. For instance, if one of them is the identity matrix, this always holds.}{}
+\item There exist matrices $\U$ and $\bc{\V}$ such that $\U\bc{\V} = \bc{\V}\U$. \ans{True. For instance, if one of them is the identity matrix, this always holds.}{}
 
 \end{enumerate}
 \end{Exercise}
@@ -72,9 +231,9 @@ Hint: if you're not sure, see if you can find the symbols in this page: \url{htt
 
 \begin{Exercise}
 \begin{enumerate}
-	\item The linear function $f(a, b, c) = \alpha a + \beta b + \gamma c$ can be written as the dot product of two vectors. What are the vectors? \ans{If $\x = (a, b, c)^T$ and $\bw = (\alpha, \beta, \gamma)^T$, then $f(x) = \bw^T\x$}{}
-	\item The linear function $f(a, b, c) = \alpha a + \beta b + \gamma c + \delta$ can be also be written as the dot product of two vectors. What are the vectors? \ans{If $\x = (a, b, c, 1)^T$ and $\bw = (\alpha, \beta, \gamma, \delta)^T$, then $f(x) = \bw^T\x$}{}
-	\item The \emph{quadratic} function $f(a, b) = \alpha a^2 + \beta ab + \gamma ba + \delta b^2$ can be written as $f(\x) = \x^T\W\x$. What should $\x$ and $\W$ be? \ans{$\x = \begin{bmatrix}a\\ b\end{bmatrix}$,$\W = \begin{bmatrix}\alpha & \beta \\ \gamma & \delta \end{bmatrix}$}{}
+	\item The linear function $f(\pc{a}, \bc{b}, \rc{c}) = \alpha \pc{a} + \beta \bc{b} + \gamma \rc{c}$ can be written as the dot product of two vectors. What are the vectors? \ans{If $\x = (\pc{a}, \bc{b}, \rc{c})^T$ and $\bw = (\alpha, \beta, \gamma)^T$, then $f(x) = \bw^T\x$}{}
+	\item The linear function $f(\pc{a}, \bc{b}, \rc{c}) = \alpha \pc{a} + \beta \bc{b} + \gamma \rc{c} + \delta$ can be also be written as the dot product of two vectors. What are the vectors? \ans{If $\x = (\pc{a}, \bc{b}, \rc{c}, 1)^T$ and $\bw = (\alpha, \beta, \gamma, \delta)^T$, then $f(x) = \bw^T\x$}{}
+	\item The \emph{quadratic} function $f(\bc{a}, \oc{b}) = \alpha \bc{a}^2 + \beta \bc{a}\oc{b} + \gamma \oc{b}\bc{a} + \delta\oc{b}^2$ can be written as $f(\x) = \x^T\W\x$. What should $\x$ and $\W$ be? \ans{$\x = \begin{bmatrix}\bc{a}\\ \oc{b}\end{bmatrix}$,$\W = \begin{bmatrix}\alpha & \beta \\ \gamma & \delta \end{bmatrix}$}{}
 \end{enumerate}
 \end{Exercise}
 
@@ -88,24 +247,24 @@ If you find anything that helps you, let us know on the discussion board.
 
 \section{Calculus}
 
-To denote the derivative of $f(x)$ we will use the notation $\frac{df(x)}{dx}$ (with $\partial$ taking the place of $d$ for partial derivatives). You may be more comfortable with the notation $f'(x)$ for the derivative. I sympathize, but when it comes to machine learning, the former notation makes things much simpler down the line, so I recommend getting used to it.
+To denote the derivative of $f(\bc{x})$ we will use the notation $\frac{\kc{d}f(\bc{x})}{\kc{d}x}$ (with $\kp$ taking the place of $\kc{d}$ for partial derivatives). You may be more comfortable with the notation $f'(\bc{x})$ for the derivative. I sympathize, but when it comes to machine learning, the former notation makes things much simpler down the line, so I recommend getting used to it.
 
 \begin{Exercise}
-\noindent Let $f(x) = 3x^2 + 5x + 1$ with $x$ a scalar.
+\noindent Let $f(\bc{x}) = 3\bc{x}^2 + 5\bc{x} + 1$ with $\bc{x}$ a scalar.
 \begin{enumerate}
-	\item What is the derivative of $f(x)$? \ans{$\frac{df(x)}{dx} = \frac{3x^2 + 5x + 1}{dx} = \frac{3x^2}{dx} + \frac{5x}{dx} + \frac{1}{dx} = 3\frac{x^2}{dx} + 5\frac{x}{dx} + \frac{1}{dx} = 3\cdot2x + 5\cdot1 + 0 = 6x + 5$}{}
-	\item For which $x$ is $f(x)$ at its minimum? \ans{$\frac{df(x)}{dx} = 0$, $6x + 5 = 0$, $x = - \frac{5}{6}$}{}
-	\item Let $h(x) = g(f(x))$, with $f$ defined as above. Let $\frac{dg(x)}{dx} = \frac{\sin(x)}{x}$. Without knowing what $g(x)$ is, can we find the derivative of $h(x)$? \ans{Yes, using the \emph{chain rule}: $\frac{dp(q(x))}{dx} = \frac{dp(q(x))}{dq(x)}\frac{dq(x)}{dx}$. Thus $\frac{dh(x)}{dx} = \frac{dg(f(x))}{dx} = \frac{dg(f(x))}{df(x)}\frac{df(x)}{dx} = \frac{\sin f(x)}{f(x)} (6x + 5) = \frac{\sin(3x^2 + 5x + 1)}{3x^2 + 5x + 1}(6x + 5)$.}{}
+	\item What is the derivative of $f(\bc{x})$? \ans{$\frac{\kc{d}f(\bc{x})}{\kc{d}\bc{x}} = \frac{\kc{d} 3\bc{x}^2 + 5\bc{x} + 1}{\kc{d}\bc{x}} = \frac{\kc{d}3\bc{x}^2}{\kc{d}\bc{x}} + \frac{\kc{d}5\bc{x}}{\kc{d}\bc{x}} + \frac{\kc{d}1}{\kc{d}\bc{x}} = 3\frac{\kc{d}\bc{x}^2}{\kc{d}\bc{x}} + 5\frac{\kc{d}\bc{x}}{\kc{d}\bc{x}} + \frac{\kc{d}1}{\kc{d}\bc{x}} = 3\cdot2\bc{x} + 5\cdot1 + 0 = 6\bc{x} + 5$}{}
+	\item For which $\bc{x}$ is $f(\bc{x})$ at its minimum? \ans{$\frac{\kc{d}f(\bc{x})}{\kc{d}\bc{x}} = 0$, $6\bc{x} + 5 = 0$, $\bc{x} = - \frac{5}{6}$}{}
+	\item Let $h(\bc{x}) = g(f(\bc{x}))$, with $f$ defined as above. Let $\frac{dg(\bc{x})}{d\bc{x}} = \frac{\sin(\bc{x})}{\bc{x}}$. Without knowing what $g(\bc{x})$ is (or working it out), can we find the derivative of $h(\bc{x})$? \ans{Yes, using the \emph{chain rule}: \\$\frac{\kc{d}p(q(\bc{x}))}{\kc{d}\bc{x}} = \frac{\kc{d}p(q(\bc{x}))}{\kc{d}q(\bc{x})}\frac{\kc{d}q(\bc{x})}{\kc{d}\bc{x}}$. Thus $\frac{\kc{d}h(\bc{x})}{\kc{d}\bc{x}} = \frac{\kc{d}g(f(\bc{x}))}{\kc{d}\bc{x}} = \frac{\kc{d}g(f(\bc{x}))}{\kc{d}f(\bc{x})}\frac{\kc{d}f(\bc{x})}{\kc{d}\bc{x}} = \frac{\sin f(\bc{x})}{f(\bc{x})} (6x + 5) = \frac{\sin(3\bc{x}^2 + 5\bc{x} + 1)}{3\bc{x}^2 + 5x + 1}(6\bc{x} + 5)$.}{}
 \end{enumerate}
 \end{Exercise}
 
 
 \begin{Exercise}
-\noindent Let $\x \in \R^2$ and let $f(\x) = 3 {x_1}^2 + 4 x_1x_2 - {x_2}^2$
+\noindent Let $\bc{\x} \in \R^2$ and let $f(\bc{\x}) = 3 {\bc{x_1}}^2 + 4 \bc{x_1}\bc{x_2}\kc{d} - {\bc{x_2}}^2$
 \begin{enumerate}
-\item What is the partial derivative of $f(\x)$ with respect to $x_1$? \ans{\[\frac{\partial\left ( 3 {x_1}^2 + 4 x_1x_2 - {x_2}^2\right ) }{\partial x} = \frac{\partial 3{x_1}^2}{\partial x_1} + \frac{\partial 4 x_1x_2 }{\partial x_1} + \frac{\partial 4 {x_2}^2}{\partial x_1}  = 6x_1 + 4x_2 \]}{}
-\item What is the partial derivative of $f(\x)$ with respect to $x_2$? \ans{\[\frac{\partial 3{x_1}^2}{\partial x_2} + \frac{\partial 4 x_1x_2 }{\partial x_2} + \frac{\partial 4 {x_2}^2}{\partial x_2} = 4x_1 - 2x_2 \]}{}
-\item What is the \emph{gradient} of $f(\x)$? \ans{The gradient is the vector of all partial derivatives: $\nabla f(x) = (6x_1 + 4x_2, 4x_1 - 2 x_2)$. For practical reasons, the gradient is usually defined as a row vector (when the input to $f$ is a column vector).}
+\item What is the partial derivative of $f(\bc{\x})$ with respect to $\bc{x_1}$? \ans{\[\frac{\kp\left ( 3 \bc{x_1}^2 + 4 \bc{x_1x_2} - \bc{x_2}^2\right ) }{\kp \bc{x_1}} = \frac{\kp 3\bc{x_1}^2}{\kp \bc{x_1}} + \frac{\kp 4 \bc{x_1x_2}}{\kp \bc{x_1}} + \frac{\kp 4 \bc{x_2}^2}{\kp \bc{x_1}}  = 6\bc{x_1} + 4\bc{x_2} \]}{}
+\item What is the partial derivative of $f(\bc{\x})$ with respect to $\bc{x_2}$? \ans{\[\frac{\kp 3\bc{x_1}^2}{\kp \bc{x_2}} + \frac{\kp 4 \bc{x_1x_2} }{\kp \bc{x_2}} + \frac{\kp 4 \bc{x_2}^2}{\kp \bc{x_2}} = 4\bc{x_1} - 2\bc{x_2} \]}{}
+\item What is the \emph{gradient} of $f(\bc{\x})$? \ans{The gradient is the vector of all partial derivatives: $\nabla f(\bc{\x}) = (6\bc{x_1} + 4\bc{x_2}, 4\bc{x_1} - 2 \bc{x_2})$. For practical reasons, the gradient is usually defined as a \emph{row} vector (when the input to $f$ is a column vector).}
 \item The gradient is a function derived from $f$, just like the derivative is a function. What are the domain and range of the gradient of $f(\x)$?	 \ans{The gradient has the same input as $f$, so the domain is also $\R^2$. The gradient defines a vector of length two for each input, so its range is $\R^2$. In other words $\nabla f: \R^2 \to \R^2$.}{}
 \end{enumerate}
 \end{Exercise}
@@ -117,55 +276,5 @@ To denote the derivative of $f(x)$ we will use the notation $\frac{df(x)}{dx}$ (
 \item \url{http://tutorial.math.lamar.edu/Classes/CalcIII/PartialDerivatives.aspx}
 \end{itemize}
 
-\section{Probability}
-
-\begin{Exercise}
-\begin{enumerate}
-\item In a few sentences, explain the difference between the Frequentist and the Bayesian interpretation of probability. \ans{A frequentist considers a probability an objective value: a property of the universe that can be measured by repeated experimentation, like measuring the probability that a bent coin lands heads, by flipping it repeatedly. A Bayesian considers probability an expression of uncertain belief. A bayesian can talk about the probability that "John is having an affair". To a frequentist this is nonsense, because John is either having an affair or he isn't.}{}
-\item What is the difference between a sample space and an event space? \ans{A sample space is a space of individual things that can happen (like a die landing on a 6) and an event space is a space of sets of things from the sample space (like a die landing on an even number). Technically, an event space should be a sigma-algebra of a sample space, but for discrete probability distributions, we can think of the event space as a the powerset of the sample space. For continuous probability distributions, we can ignore the technical details.}{}
-\item What is the difference between a probability distribution and a probability density function? \ans{A probability function assigns probabilities to events. If the sample space is continuous (like in the case of a normal distribution) all atomic events like "John's length is exactly 2 meters" will have zero probability. Instead, we define a probability density function. We then get the probability of a subset of the sample space, like "John's height is between 1.95 and 2.05", by integrating over the probability density function.}{}
-\end{enumerate}	
-\end{Exercise}
-
-\begin{Exercise}
-\noindent In the following, $p$ is a  probability function and $A$ and $B$ are events. Which of the following are true?
-\begin{enumerate}
-	\item Joint probability is symmetric: $p(A, B) = p(B, A)$. \ans{True}{}
-	\item Conditional probability is symmetric $p(A \mid B) = p(B \mid A)$. \ans{False. This is not true in general (although it may be true for specific $A$ and $B$).}{}
-	\item Two random variables $X$ and $Y$ are conditionally independent on a third $Z$. Once we know $X$ and $Y$, we also know the value of $Z$. \ans{False.}{}
-	\item Two random variables $X$ and $Y$ are conditionally independent on a third $Z$. Once we know $Z$, also knowing $X$ will tell us nothing extra about $Y$. \ans{True: conditional independence means that given the value of the conditional, $X$ and $Y$ are independent (so knowing the value of one reveals nothing about the other).}{}
-\end{enumerate}	
-\end{Exercise}
-
-\begin{Exercise}
-
-\noindent Assume that the probability that a given patient has diabetes is $0.01$. We have a test for diabetes with a false positive rate of $0.05$: if a patient has no diabetes, the test diagnoses it 5\% of the time. The false negative rate is $0.1$. 
-You are a doctor, and you administer the test to patient (knowing nothing else). The test says she has diabetes. What is the probability that she doesn't? Hint: this is a question about Bayes' rule.
-Reflect on the result. Is this what you would've expected? If not, where does the unexpected result come from?
-
-\ans{Let's write down the given probabilities first. We'll use $D$ and $\neg D$ for the events that the patient has and doesn't have diabetes respectively. We'll use $T$ for the event of the test \emph{saying} that the patient has diabetes and $\neg T$ for the test saying that she doesn't.
-We are given $p(D) = 0.01$, $p(T \mid \neg D) = 0.05$ and $p(\neg T \mid D) = 0.1$. We can derive $p(\neg T\mid \neg D) = 0.95$ and $p(T \mid D) = 0.9$.
-Now, we want to know $p(\neg D \mid T)$. We'll use Bayes' rule to reverse the probability and the conditional:
-\begin{align*}
-p(\neg D \mid T) &= \frac{p(T \mid \neg D) p(\neg D)}{p(T)} \\
-&= \frac{p(T \mid \neg D) p(\neg D)}{p(T, D) + p(T, \neg D)} \\
-&= \frac{p(T \mid \neg D) p(\neg D)}{p(T \mid D)p(D) + p(T \mid \neg D)p(\neg D)} \\
-&= \frac{0.05 \times 0.99}{0.9 \times 0.01 + 0.05 \times 0.99} \\
-&= \frac{5 \times 99}{ 5\times 99 + 90} \approx 0.85
-\end{align*}
-Whether you expected this result is up to you, of course, but it's certainly not what you want form a test like this. The false positive and false negative rates don't seem so high as to make the test useless. In the last line, I've multiplied everything by 100 so you can see where the imbalance comes from: the high prior probability that someone doesn't have diabetes dominates. 
-In order for the test to be reliable, the false positive rate needs to be low enough to cancel to make the numerator small in proportion to the denominator.
-}{}
-\end{Exercise}
-
-
-
-And again, here are some links. Probability theory is a difficult subject, and we don't expect you to understand it completely, down to all the technical definitions. We we review most of this stuff in the lectures and homework if the time comes. Still, if you were completely baffled by these exercises, you may want to read ahead a little.
-
-\begin{enumerate}
-\item \url{https://betterexplained.com/articles/a-brief-introduction-to-probability-statistics/}
-\item \url{https://www.khanacademy.org/math/probability/probability-geometry/probability-basics/a/probability-the-basics}
-\item \url{http://dept.stat.lsa.umich.edu/~moulib/probrefresh.pdf}
-\end{enumerate}
 
 \end{document}
