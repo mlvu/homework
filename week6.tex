@@ -1,0 +1,195 @@
+\documentclass[11pt]{article}
+
+\input{preamble}
+
+%\usepackage{tikz}
+%\usepackage{tikz-qtree}
+\usepackage{qtree}
+\usepackage{xfrac}
+
+\title{Week 6: Decision Trees and Ensembles}
+
+\begin{document}
+
+\maketitle
+
+\section{Decision trees}
+
+Imagine you do a newspaper round to help you get through these lean times.  On your round, you encounter a number of dogs that either bark or (try to) bite. The dogs are described by the following binary features: \emph{Heavy}, \emph{Smelly}, \emph{Big} and \emph{Growling}. Consider the following set of examples:
+
+\begin{center}
+\begin{tabular}{c  c  c  c  | c }
+Heavy & Smelly &  Big & Growling & Bites \\
+\hline
+\rc{No}  & \rc{No} & \rc{No}  & \rc{No}  & \oc{No} \\
+\rc{No}  & \rc{No} & \gc{Yes} & \rc{No}  & \oc{No} \\
+\gc{Yes} & \gc{Yes}& \rc{No}  & \gc{Yes} & \oc{No} \\
+\gc{Yes} & \rc{No} & \rc{No}  & \gc{Yes} & \bc{Yes} \\
+\rc{No}  &\gc{Yes} & \gc{Yes} & \rc{No}  & \bc{Yes} \\
+\rc{No}  & \rc{No} & \gc{Yes} & \gc{Yes} & \bc{Yes} \\
+\rc{No}  & \rc{No} & \rc{No}  & \gc{Yes} & \bc{Yes} \\
+\gc{Yes} &\gc{Yes} & \rc{No}  & \rc{No}  & \bc{Yes} \\
+\hline
+\end{tabular}
+\end{center}
+
+
+\qu What is the entropy of the target value \emph{Bites} in the data?
+\ans{
+\[H(\text{Bites})= - \sfrac{5}{8}\log_2\sfrac{5}{8} - \sfrac{3}{8}\log_2\sfrac{3}{8} \approx 0.9544\]
+}{}
+
+
+\qu Which attribute would the ID3 algorithm choose to use for the root of the tree (without pruning)?
+\ans{Growling}{}
+
+
+\qu What is the information gain of the attribute you chose in the previous question?
+\ans{approximately 0.0487}{}
+
+
+\qu Draw the full decision tree that would be learned for this data using ID3 without pruning.
+
+\ans{
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\linewidth]{Tree}
+\caption{Decision tree}
+\end{figure}
+}{}
+
+
+\qu Suppose three new dogs appear in your round as listed in the table below. Classify them using the decision tree from the previous question.
+
+\begin{center}
+\begin{tabular}{c c c c c | c }
+Dog & Heavy & Smelly &  Big & Growling & Bites \\
+\hline
+Buster & \gc{Yes} & \gc{Yes} & \gc{Yes} & \gc{Yes} & \ans{\oc{No}}{?} \\
+Pluto  & \rc{No}  & \gc{Yes} & \rc{No}  & \gc{Yes} & \ans{\oc{No}}{?} \\
+Zeus   & \gc{Yes} & \gc{Yes} & \rc{No}  & \rc{No} & \ans{\bc{Yes}}{?} \\
+\hline
+\end{tabular}
+\end{center}
+
+\qu Someone proposes a new scheme to prevent overfitting: she suggests to set a pre-defined maximum depth for the decision trees. When the standard algorithm reaches this depth, it terminates. Could this help to prevent overfitting? Why (not)?
+\ans{
+It ensures smaller, simpler trees (a smaller model space) and therefore can reduce the risk of overfitting. Overfitting is essentially memorizing too much of your data. Smaller trees can memorize less.
+}{}
+
+\qu In the maximum depth scheme introduced above, how would you determine a good value for the maximum depth for a given data set?
+
+\ans{
+The maximum depth is a \emph{hyperparameter}. We can choose good values for our hyperparameters by splitting our training data into a validation set and trying different values (either by cross validation or just single runs).}{}
+
+\qu Why can't we apply L1-regularization to this decision tree learning problem?
+
+\ans{L1 regularization assumes that your model is described by a real valued vector of parameters (i.e. your model space is continuous.) Decision trees have a \emph{discrete} model space.}{}
+
+\section{Variational autoencoders}
+
+The maximum likelihood principle tells us to optimize the quantity $p(x\mid \theta)$ as a function of $\theta$ (the model parameters).
+
+For complex models, this does not usually lead to a closed form solution and applying gradient descent to $\theta$ directly tends to lead to mode collapse. Instead we rely on the following equality:
+
+\[
+\ln p(\x\mid \theta) = L(\rc{q}, \theta) + KL(\rc{q}, \gc{p}) \\
+\]
+with
+\begin{align*}
+\rc{q}(\z)&\; \text{any distribution on $\z$} \\
+\gc{p}&= p(\z \mid \x, \theta) \\
+KL(\rc{q}, \gc{p})&\; \text{the Kullback-Leibler divergence}\\
+L(\rc{q}, \theta) &= \E_\rc{q} \ln \frac{p(\x, \z \mid \theta) }{\rc{q}(\z)}
+\end{align*}
+
+We will first prove that this equality holds. We start with the right hand side, fill in the components, and derive the left-hand side.
+
+\qu Fill in the blanks. We have written everything in terms of \emph{expectations} $\E$ to simplify the notation. The expectation is over the random variable $\z$, while $\x$ has some definite value. Note that $\E f(\z) + \E g(\z) = \E\left [f(\z) + g(\z)\right]$.
+
+\begin{align*}
+L(\rc{q}, \theta) + KL(\rc{q}, \gc{p}) &= \ans{\E_\rc{q} \ln \frac{p(\x, \z \mid \theta) }{\rc{q}(\z)} -\E_\rc{q} \ln \frac{p(\z \mid \x, \theta)}{\rc{q}(\z)}}{\ldots}\\
+&= \mathbb{E}_\rc{q} \ln \frac{p(\x, \z \mid \theta) }{\rc{q}(\z)} - \mathbb{E}_\rc{q} \ln \frac{p(\z \mid \x, \theta)}{\rc{q}(\z)}\\
+&= \ans{\E_\rc{q}  \ln p(\x,\z\mid \theta) - \E_\rc{q} \ln \rc{q}(z) - \E_\rc{q} \ln p(\z\mid \x, \theta) + \E_\rc{q} \ln \rc{q}(z)}{\ldots}\\
+&= \mathbb{E}_\rc{q} \ln p(\x, \z \mid \theta)  - \mathbb{E}_\rc{q} \ln p(\z \mid \x, \theta) \\
+&= \mathbb{E}_\rc{q} \ln \frac{p(\x, \z \mid \theta) }{ p(\z \mid \x, \theta) } = \ans{\mathbb{E}_\rc{q} \ln \frac{p(\z\mid \x,  \theta)p(\x\mid \theta) }{ p(\z \mid \x, \theta)}}{\ldots}\\
+&= \mathbb{E}_\rc{q} \ln p(\x \mid \theta)  = \ln p(\x \mid \theta)  
+\end{align*}
+
+In the EM algorithm, we search by alternately optimizing $L(\rc{q}\mid \theta)$ with respect to $\theta$ and setting $\rc{q}$ equal to $\gc{p}$ (so that the KL term becomes zero).
+
+\qu For the variational autoencoder, we cannot (easily) perform this last step. Why not?
+\ans{
+In the variational autoencoder, our model is a neural network that transforms $\z$ into a distribution on $\x$. To set the KL divergence term equal to zero, we would have to compute $p(\z \mid \x, \theta)$: i.e. a probability distribution on $\z$ that indicates for which $\z$ our observed $\x$ is most likely.
+
+While sampling techniques exist to approximate this kind of distribution, they are costly and can be very inaccurate.
+}{}
+
+Instead, we \emph{approximate} $\gc{p}(\z \mid\x, \theta)$ with a neural network $\rc{q}(\z \mid \x)$ that produces a distribution on $\z$ given some $\x$. This gives us an auto-encoder-like structure. An input is mapped to a distribution $\rc{q}(\z\mid \x)$ by the \emph{encoder}. We sample a single $\z$ from this distribution and pass it through the \emph{decoder} $p(\x \mid \z, \theta)$ to produce a distribution on $\x$ (see the \href{https://www.dropbox.com/s/bsjiwug8ykk33t6/51.DeepLearning2.annotated.pdf?dl=0}{slides} for diagrams).
+
+To find a way to train such an architecture, we turn again to our decomposition of the likelihood:
+\[
+\ln p(\x\mid \theta) = L(\rc{q}, \theta) + KL(\rc{q}, \gc{p}) \p \\
+\]
+Since the KL divergence is always positive, this tells us that 
+
+\[
+\ln p(\x\mid \theta) \geq L(\rc{q}, \theta) \\
+\]
+for \emph{any} $\rc{q}$ we choose. This is why $L$ is called the variational \emph{lower bound}.\footnotemark If we choose our parameters $\theta$ and our function $\rc{q}$ to maximize $L$, we are also, indirectly, maximizing $p(\x\mid \theta)$.\footnotemark
+
+\footnotetext{The word \emph{variational} comes from the fact that one of its arguments, \rc{q}, is a function (the calculus of functions is called \emph{variational} calculus). For our purposes, this distinction doesn't matter much, since the function $\rc{q}$ is defined by a set of parameters, so ultimately we will take the derivative over those parameters, as we are used to.}
+
+\footnotetext{How close the lower bound $L$ comes to the true value $p(\x\mid \theta)$ depends on how well our encoder network $\rc{q}$ approximates the true conditional distribution on $\z$: $\gc{p}(\z \mid\x, \theta)$.}
+
+To do so, we rewrite it into two separate terms: a KL divergence and an expectation:
+
+\[
+L(\rc{q}, \theta) = - KL(\rc{q}(\z\mid\x), p(\z)) + \E_\rc{q} \ln p(\x\mid \z, \theta)
+\]
+
+\qu Show that this equation holds (i.e. rewrite the left part into the right).
+\ans{
+We will omit the dependency of $p$ on $\theta$, to clarify the notation.
+\begin{align*}
+	L(\rc{q}, \theta) &= \E_\rc{q} \ln \frac{p(\x, \z)}{\rc{q}(\z\mid \x)} \\
+	&= \E \ln p(\x, \z) - \E \rc{q}(\z \mid \x) \\
+	&= \E \ln \left[p(\x\mid \z)p(\z)\right] - \E \ln \rc{q}(\z \mid \x) \\
+	&= \E \ln p(\x \mid \z) + \E \ln p(\z) - \E \ln \rc{q}(\z \mid \x) \\
+	&= \E \ln p(\x \mid \z) - \left [ \E \ln \rc{q}(\z \mid \x) - \E \ln p(\z) \right ]\\
+	&= - KL(\rc{q}(\z\mid\x), p(\z)) + \E \ln p (\x\mid \z)
+\end{align*}
+}{}
+
+Thus, to optimize our variational autoencoder, we should maximize $L$. In other words, $-L$ is our loss function. The only problem left to solve is that the second term is an expectation (which we cannot compute explicitly). 
+\qu How is this solved in practice?
+
+\ans{We take a single sample from $\rc{q}(\z\mid \x)$ and use $\ln p(\x\mid \x)$ as a (very crude) estimate of the expectation term. To let the gradient propagate through the sampling, we add a sample from the standard MVN to the input and transform it to a sample from $\rc{q}$ by multiplying by a matrix $A$ (with $\Sigma = AA^T$) and adding the mean.}{}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
