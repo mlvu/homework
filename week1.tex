@@ -183,10 +183,10 @@ There are two main reasons why it's such a useful function in machine learning:
 \item $\log_c \bc{a} + \log_c \oc{b} = \log_c (\bc{a}\oc{b})$\label{line:prod}. Hint: let $\bc{a'} = \log_c{\bc{a}}$ and $\oc{b'} = \log_c{\oc{b}}$ and apply one of the rules given. \ans{
 \begin{align*}
 c^{\bc{a'}} \cdot c^{\oc{b'}} &= c^{\bc{a'} + \oc{b'}} & \\
-c^{\log_c{\bc{a}}} \cdot c^{\log_c{\oc{b}}} &= c^{\log_c{\bc{a}} + \log_c{\bc{a}}} & \\
-\bc{a} \cdot \oc{b} &= c^{\log_c{\oc{b}} + \log_c{\bc{a}}} & \text{apply (\ref{line:cancel2})} \\
-\log_c\left( \bc{a}\oc{b}\right) &= \log_c{c^{\log_c{\oc{b}} + \log_c{\bc{a}}}} &\text{take $\log_c$ on both sides} \\
-\log_c\left( \bc{a}\oc{b}\right) &= \log_c{\oc{b}} + \log_c{\bc{a}} &\text{apply (\ref{line:cancel2}) in the righthand side} \\
+c^{\log_c{\bc{a}}} \cdot c^{\log_c{\oc{b}}} &= c^{\log_c{\bc{a}} + \log_c{\oc{b}}} & \\
+\bc{a} \cdot \oc{b} &= c^{\log_c{\bc{a}} + \log_c{\oc{b}}} & \text{apply (\ref{line:cancel2})} \\
+\log_c\left( \bc{a}\oc{b}\right) &= \log_c{c^{\log_c{\bc{a}} + \log_c{\oc{b}}}} &\text{take $\log_c$ on both sides} \\
+\log_c\left( \bc{a}\oc{b}\right) &= \log_c{\bc{a}} + \log_c{\oc{b}} &\text{apply (\ref{line:cancel}) in the righthand side} \\
 \end{align*}
 }{}
 
@@ -296,11 +296,11 @@ Both the dot product and matrix multiplication have many different intuitive exp
 \begin{enumerate}
 \item $f: \R^3 \to \R^2$ \ans{$f$ is a function from the 3-dimensional Euclidean space to the 2-dimensional Euclidean space.}{}
 \item $\y = \W \x$ \ans{The vector $\y$ is defined as the product of the matrix $\W$ and the vector $\x$}{}
-\item $\z = \y^T\x$ \ans{The vector $\z$ is defined as the the transposed vector $\y$ times the vector $\x$. This is also known as the \emph{dot product} of $\x$ and $\y$.}{}
+\item $z = \y^T\x$ \ans{The scalar $z$ is defined as the the transposed vector $\y$ times the vector $\x$. This is also known as the \emph{dot product} of $\x$ and $\y$.}{}
 \item $\W \in \R^{5 \times 4}$ \ans{$\W$ is a matrix with 5 rows, and 4 columns.}{}
 \end{enumerate}
 
-In future, if you see unfamiliar notation, see if you can find the symbols in this page: \url{https://en.wikipedia.org/wiki/List_of_mathematical_symbols}. Even if that doesn't explain it fully, it may provide you with some keywords to google.
+\indent In future, if you see unfamiliar notation, see if you can find the symbols in this page: \url{https://en.wikipedia.org/wiki/List_of_mathematical_symbols}. Even if that doesn't explain it fully, it may provide you with some keywords to google.
 
 \qu Which of the following operations are possible, and which aren't?
 
@@ -354,7 +354,7 @@ We will assume that you know the basics of calculus (specifically, taking 1D der
 \begin{enumerate}
 	\item What is the derivative of $f(\bc{x})$? \ans{$\frac{\kc{d}f(\bc{x})}{\kc{d}\bc{x}} = \frac{\kc{d} 3\bc{x}^2 + 5\bc{x} + 1}{\kc{d}\bc{x}} = \frac{\kc{d}3\bc{x}^2}{\kc{d}\bc{x}} + \frac{\kc{d}5\bc{x}}{\kc{d}\bc{x}} + \frac{\kc{d}1}{\kc{d}\bc{x}} = 3\frac{\kc{d}\bc{x}^2}{\kc{d}\bc{x}} + 5\frac{\kc{d}\bc{x}}{\kc{d}\bc{x}} + \frac{\kc{d}1}{\kc{d}\bc{x}} = 3\cdot2\bc{x} + 5\cdot1 + 0 = 6\bc{x} + 5$}{}
 	\item For which $\bc{x}$ is $f(\bc{x})$ at its minimum? \ans{$\frac{\kc{d}f(\bc{x})}{\kc{d}\bc{x}} = 0$, $6\bc{x} + 5 = 0$, $\bc{x} = - \frac{5}{6}$}{}
-	\item Let $h(\bc{x}) = g(f(\bc{x}))$, with $f$ defined as above. Let $\frac{\kc{d}g(\bc{x})}{\kc{d}\bc{x}} = \frac{\sin(\bc{x})}{\bc{x}}$. Without knowing what $g(\bc{x})$ is (or working it out), can we find the derivative of $h(\bc{x})$? \ans{Yes, using the \emph{chain rule}: \\$\frac{\kc{d}p(q(\bc{x}))}{\kc{d}\bc{x}} = \frac{\kc{d}p(q(\bc{x}))}{\kc{d}q(\bc{x})}\frac{\kc{d}q(\bc{x})}{\kc{d}\bc{x}}$. Thus $\frac{\kc{d}h(\bc{x})}{\kc{d}\bc{x}} = \frac{\kc{d}g(f(\bc{x}))}{\kc{d}\bc{x}} = \frac{\kc{d}g(f(\bc{x}))}{\kc{d}f(\bc{x})}\frac{\kc{d}f(\bc{x})}{\kc{d}\bc{x}} = \frac{\sin f(\bc{x})}{f(\bc{x})} (6x + 5) = \frac{\sin(3\bc{x}^2 + 5\bc{x} + 1)}{3\bc{x}^2 + 5x + 1}(6\bc{x} + 5)$.}{}
+	\item Let $h(\bc{x}) = g(f(\bc{x}))$, with $f$ defined as above. Let $\frac{\kc{d}g(\bc{x})}{\kc{d}\bc{x}} = \sin(\bc{x})/\bc{x}$. Without knowing what $g(\bc{x})$ is (or working it out), can we find the derivative of $h(\bc{x})$? \ans{Yes, using the \emph{chain rule}: \\$\frac{\kc{d}p(q(\bc{x}))}{\kc{d}\bc{x}} = \frac{\kc{d}p(q(\bc{x}))}{\kc{d}q(\bc{x})}\frac{\kc{d}q(\bc{x})}{\kc{d}\bc{x}}$. Thus $\frac{\kc{d}h(\bc{x})}{\kc{d}\bc{x}} = \frac{\kc{d}g(f(\bc{x}))}{\kc{d}\bc{x}} = \frac{\kc{d}g(f(\bc{x}))}{\kc{d}f(\bc{x})}\frac{\kc{d}f(\bc{x})}{\kc{d}\bc{x}} = \frac{\sin f(\bc{x})}{f(\bc{x})} (6x + 5) = \frac{\sin(3\bc{x}^2 + 5\bc{x} + 1)}{3\bc{x}^2 + 5x + 1}(6\bc{x} + 5)$.}{}
 \end{enumerate}
 
 \qu Let $\bc{\x} \in \R^2$ and let $f(\bc{\x}) = 3 {\bc{x_1}}^2 + 4 \bc{x_1}\bc{x_2} - {\bc{x_2}}^2$
