@@ -7,7 +7,8 @@
 \usepackage{qtree}
 \usepackage{xfrac}
 
-\title{Week 6: Decision Trees and Ensembles}
+\title{Week 6: Decision Trees and Variational Autoencoders}
+\author{\url{http://mlvu.github.io}}
 
 \begin{document}
 
@@ -39,17 +40,13 @@ Heavy & Smelly &  Big & Growling & Bites \\
 \[H(\text{Bites})= - \sfrac{5}{8}\log_2\sfrac{5}{8} - \sfrac{3}{8}\log_2\sfrac{3}{8} \approx 0.9544\]
 }{}
 
-
 \qu Which attribute would the ID3 algorithm choose to use for the root of the tree (without pruning)?
 \ans{Growling}{}
-
 
 \qu What is the information gain of the attribute you chose in the previous question?
 \ans{approximately 0.0487}{}
 
-
 \qu Draw the full decision tree that would be learned for this data using ID3 without pruning.
-
 \ans{
 
 \begin{figure}[H]
@@ -59,8 +56,7 @@ Heavy & Smelly &  Big & Growling & Bites \\
 \end{figure}
 }{}
 
-
-\qu Suppose three new dogs appear in your round as listed in the table below. Classify them using the decision tree from the previous question.
+\qu Suppose three new dogs appear in your round as listed in the table below. Classify them using the tree from the previous question.
 
 \begin{center}
 \begin{tabular}{c c c c c | c }
@@ -89,83 +85,91 @@ The maximum depth is a \emph{hyperparameter}. We can choose good values for our 
 
 \section{Variational autoencoders}
 
-The maximum likelihood principle tells us to optimize the quantity $p(x\mid \theta)$ as a function of $\theta$ (the model parameters).
-
-For complex models, this does not usually lead to a closed form solution and applying gradient descent to $\theta$ directly tends to lead to mode collapse. Instead we rely on the following equality:
+The maximum likelihood principle tells us to optimize the quantity $p(x\mid \theta)$ as a function of $\theta$ (the model parameters).For complex models, this does not usually lead to a closed form solution. Instead, we will rewrite the maximum likelihood objective using the following decomposition.
 
 \[
-\ln p(\x\mid \theta) = L(\rc{q}, \theta) + KL(\rc{q}, \gc{p}) \\
+\ln p(\x\mid \theta) = L(\rc{q}, \theta) + KL(\rc{q}, p) \\
 \]
 with
 \begin{align*}
-\rc{q}(\z)&\; \text{any distribution on $\z$} \\
-\gc{p}&= p(\z \mid \x, \theta) \\
-KL(\rc{q}, \gc{p})&\; \text{the Kullback-Leibler divergence}\\
-L(\rc{q}, \theta) &= \E_\rc{q} \ln \frac{p(\x, \z \mid \theta) }{\rc{q}(\z)}
+\rc{q}(\z\mid \x)\;&\text{any distribution on $\z$} \\
+KL(\rc{q}, p)\;&\text{the Kullback-Leibler divergence\footnotemark}\\
+&\text{between $\rc{q}(\z \mid \x)$ and $p(\z \mid \x, \theta)$}\\
+L(\rc{q}, \theta) &= \E_\rc{q} \ln \frac{p(\x, \z \mid \theta) }{\rc{q}(\z\mid \x)}
 \end{align*}
+
+\footnotetext{The KL divergence can be defined using $\log_2$ or using $\ln$. The first leads to a value in \emph{bits}, the second to a value in the slightly more abstract unit of \emph{nats}. That is, the information distance between the two distributions is the same, but expressed in different units. In the context of the VAE, the natural logarithm $\ln$ is preferred, mainly because it cancels out neatly against the exponent in the pdf of the normal distribution.
+}
 
 We will first prove that this equality holds. We start with the right hand side, fill in the components, and derive the left-hand side.
 
 \qu Fill in the blanks. We have written everything in terms of \emph{expectations} $\E$ to simplify the notation. The expectation is over the random variable $\z$, while $\x$ has some definite value. Note that $\E f(\z) + \E g(\z) = \E\left [f(\z) + g(\z)\right]$.
 
 \begin{align*}
-L(\rc{q}, \theta) + KL(\rc{q}, \gc{p}) &= \ans{\E_\rc{q} \ln \frac{p(\x, \z \mid \theta) }{\rc{q}(\z)} -\E_\rc{q} \ln \frac{p(\z \mid \x, \theta)}{\rc{q}(\z)}}{\ldots}\\
-&= \mathbb{E}_\rc{q} \ln \frac{p(\x, \z \mid \theta) }{\rc{q}(\z)} - \mathbb{E}_\rc{q} \ln \frac{p(\z \mid \x, \theta)}{\rc{q}(\z)}\\
-&= \ans{\E_\rc{q}  \ln p(\x,\z\mid \theta) - \E_\rc{q} \ln \rc{q}(z) - \E_\rc{q} \ln p(\z\mid \x, \theta) + \E_\rc{q} \ln \rc{q}(z)}{\ldots}\\
+L(\rc{q}, \theta) + KL(\rc{q}, p) &= \mathbb{E}_\rc{q} \ln \frac{p(\x, \z \mid \theta) }{\rc{q}(\z\mid \x)} - \mathbb{E}_\rc{q} \ln \frac{p(\z \mid \x, \theta)}{\rc{q}(\z\mid \x)}\\
+&= \ans{\E_\rc{q}  \ln p(\x,\z\mid \theta) - \E_\rc{q} \ln \rc{q}(\z\mid \x) - \E_\rc{q} \ln p(\z\mid \x, \theta) + \E_\rc{q} \ln \rc{q}(\z \mid \x)}{\ldots}\\
 &= \mathbb{E}_\rc{q} \ln p(\x, \z \mid \theta)  - \mathbb{E}_\rc{q} \ln p(\z \mid \x, \theta) \\
 &= \mathbb{E}_\rc{q} \ln \frac{p(\x, \z \mid \theta) }{ p(\z \mid \x, \theta) } = \ans{\mathbb{E}_\rc{q} \ln \frac{p(\z\mid \x,  \theta)p(\x\mid \theta) }{ p(\z \mid \x, \theta)}}{\ldots}\\
 &= \mathbb{E}_\rc{q} \ln p(\x \mid \theta)  = \ln p(\x \mid \theta)  
 \end{align*}
 
-In the EM algorithm, we search by alternately optimizing $L(\rc{q}\mid \theta)$ with respect to $\theta$ and setting $\rc{q}$ equal to $\gc{p}$ (so that the KL term becomes zero).
+In EM, we search by alternately (1) optimizing $L(\rc{q}\mid \theta)$ with respect to $\theta$ and (2) setting $\rc{q}$ equal to $\gc{p}$ (so that the KL term becomes zero).
 
 \qu For the variational autoencoder, we cannot (easily) perform this last step. Why not?
-\ans{
-In the variational autoencoder, our model is a neural network that transforms $\z$ into a distribution on $\x$. To set the KL divergence term equal to zero, we would have to compute $p(\z \mid \x, \theta)$: i.e. a probability distribution on $\z$ that indicates for which $\z$ our observed $\x$ is most likely.
+\ans{In the variational autoencoder, our model is a neural network that transforms $\z$ into a distribution on $\x$. To set the KL divergence term equal to zero, we would have to compute $p(\z \mid \x, \theta)$: i.e. a probability distribution on $\z$ that indicates for which $\z$ our observed $\x$ is most likely.
 
 While sampling techniques exist to approximate this kind of distribution, they are costly and can be very inaccurate.
 }{}
 
-Instead, we \emph{approximate} $\gc{p}(\z \mid\x, \theta)$ with a neural network $\rc{q}(\z \mid \x)$ that produces a distribution on $\z$ given some $\x$. This gives us an auto-encoder-like structure. An input is mapped to a distribution $\rc{q}(\z\mid \x)$ by the \emph{encoder}. We sample a single $\z$ from this distribution and pass it through the \emph{decoder} $p(\x \mid \z, \theta)$ to produce a distribution on $\x$ (see the \href{https://www.dropbox.com/s/bsjiwug8ykk33t6/51.DeepLearning2.annotated.pdf?dl=0}{slides} for diagrams).
+~\linebreak
+Instead, we \emph{approximate} $p(\z \mid\x, \theta)$ with a neural network $\rc{q_\bv}(\z \mid \x)$ that produces a distribution on $\z$ given some $\x$. We call the neural network computing $p(\x \mid \x, \theta)$ $\gc{p_\bw}(\x\mid \z)$, to make the notation a little more friendly. Here, $\gc{\bw}$, stands for all parameters of the \gc{p} network, and $\rc{\bv}$ stands for all parameters of the \rc{q} network.\footnotemark 
 
-To find a way to train such an architecture, we turn again to our decomposition of the likelihood:
+\footnotetext{We've turned $\theta$ into $\gc{\bw}$ and added parameters $\rc{\bv}$ for our approximation $\rc{q}$ on the conditional distribution on $\z$. We've also taken the parameters out of the conditional, because we will always talk about the function ``given the parameter''; we will never talk about the probability on the parameters themselves.}
+
+This gives us an auto-encoder-like structure. An input is mapped to a distribution $\rc{q_\bv}(\z\mid \x)$ by the \rc{encoder}. We sample a single $\z$ from this distribution and pass it through the \gc{decoder} $\gc{p_\bw}(\x \mid \z)$ to produce a distribution on $\x$ (see the \href{https://mlvu.github.io/lectures/51.Deep\%20Learning2.annotated.pdf}{slides} for diagrams).
+
+To find a way to train such an architecture, we turn again to our decomposition of the likelihood. In our new notation:
 \[
-\ln p(\x\mid \theta) = L(\rc{q}, \theta) + KL(\rc{q}, \gc{p}) \p \\
-\]
-Since the KL divergence is always positive, this tells us that 
-
-\[
-\ln p(\x\mid \theta) \geq L(\rc{q}, \theta) \\
-\]
-for \emph{any} $\rc{q}$ we choose. This is why $L$ is called the variational \emph{lower bound}.\footnotemark If we choose our parameters $\theta$ and our function $\rc{q}$ to maximize $L$, we are also, indirectly, maximizing $p(\x\mid \theta)$.\footnotemark
-
-\footnotetext{The word \emph{variational} comes from the fact that one of its arguments, \rc{q}, is a function (the calculus of functions is called \emph{variational} calculus). For our purposes, this distinction doesn't matter much, since the function $\rc{q}$ is defined by a set of parameters, so ultimately we will take the derivative over those parameters, as we are used to.}
-
-\footnotetext{How close the lower bound $L$ comes to the true value $p(\x\mid \theta)$ depends on how well our encoder network $\rc{q}$ approximates the true conditional distribution on $\z$: $\gc{p}(\z \mid\x, \theta)$.}
-
-To do so, we rewrite it into two separate terms: a KL divergence and an expectation:
-
-\[
-L(\rc{q}, \theta) = - KL(\rc{q}(\z\mid\x), p(\z)) + \E_\rc{q} \ln p(\x\mid \z, \theta)
+\ln \gc{p_\bw}(\x) = L(\rc{\bv}, \gc{\bw}) + KL(\rc{q}, \gc{p}) \p \\
 \]
 
-\qu Show that this equation holds (i.e. rewrite the left part into the right).
-\ans{
-We will omit the dependency of $p$ on $\theta$, to clarify the notation.
+The KL divergence term is difficult to compute: it's an expectation, and it contains the function $\gc{p_\bw}(\z \mid \x)$ which requires us to invert the \gc{decoder} neural network (that is, to reason about the inputs given the outputs).
+
+However, because the KL divergence is always positive, we know that 
+
+\[
+\ln \gc{p_\bw}(\x) \geq L(\rc{\bv}, \gc{\bw}) \\
+\]
+for \emph{any} $\rc{q_\bv}$ we choose. This is why $L$ is called the variational \emph{lower bound}.\footnotemark~If we choose our parameters $\gc{\bw}, \rc{\bv}$ to maximize $L$, we are also, indirectly, maximizing $\ln \gc{p_\bw}(\x)$.\footnotemark
+
+\footnotetext{The word \emph{variational} comes from the fact that one of its arguments, \rc{q}, is a function (the calculus of functions is called \emph{variational} calculus). For our purposes, this distinction doesn't matter much, since the function $\rc{q}$ is defined by a set of parameters $\rc{\bv}$, so ultimately we will take the derivative over those parameters, as we are used to.}
+
+\footnotetext{How close the lower bound $L$ comes to the true value $\gc{p_\bw}(\x)$ depends on how well our encoder network $\rc{q_\bv}$ approximates the true conditional distribution on $\z$: $\gc{p_\bw}(\z \mid\x)$. I.e. how small the KL term in the original decomposition is.}
+
+To do so, we rewrite $L(\rc{\bv}, \gc{\bw})$ into two separate terms: a KL divergence and an expectation:
+
+\[
+L(\rc{\bv}, \gc{\bw}) = - KL(\rc{q_\bv}(\z\mid\x), \gc{p_\bv}(\z)) + \E_\rc{q_\bv} \ln \gc{p_\bw}(\x\mid \z)
+\]
+
+\qu Show that this equation holds. That is, rewrite the left part into the right. We will assume that all expectations are over $\rc{q}$.
 \begin{align*}
-	L(\rc{q}, \theta) &= \E_\rc{q} \ln \frac{p(\x, \z)}{\rc{q}(\z\mid \x)} \\
-	&= \E \ln p(\x, \z) - \E \rc{q}(\z \mid \x) \\
-	&= \E \ln \left[p(\x\mid \z)p(\z)\right] - \E \ln \rc{q}(\z \mid \x) \\
-	&= \E \ln p(\x \mid \z) + \E \ln p(\z) - \E \ln \rc{q}(\z \mid \x) \\
-	&= \E \ln p(\x \mid \z) - \left [ \E \ln \rc{q}(\z \mid \x) - \E \ln p(\z) \right ]\\
-	&= - KL(\rc{q}(\z\mid\x), p(\z)) + \E \ln p (\x\mid \z)
+	L(\rc{\bv}, \gc{\bw}) &= \E_\rc{q} \ln \frac{\gc{p_\bw}(\x, \z)}{\rc{q_\bv}(\z\mid \x)} \\
+	&= \ans{\E \ln \gc{p_\bw}(\x, \z) - \E \rc{q_\bv}(\z \mid \x)}{\ldots}\\
+	&= \ans{\E \ln \left[\gc{p_\bw}(\x\mid \z)\gc{p_\bw}(\z)\right] - \E \ln \rc{q_\bv}(\z \mid \x)}{\ldots} \\
+	&= \ans{\E \ln \gc{p_\bw}(\x \mid \z) + \E \ln \gc{p_\bw}(\z) - \E \ln \rc{q_\bv}(\z \mid \x)}{\ldots} \\
+	&= \E \ln \gc{p_\bw}(\x \mid \z) - \left [ \E \ln \rc{q_\bv}(\z \mid \x) - \E \ln \gc{p_\bw}(\z) \right ]\\
+	&= \E \ln \gc{p_\bw} (\x\mid \z) - KL(\rc{q_\bv}(\z\mid\x), \gc{p_\bw}(\z)) 
 \end{align*}
-}{}
+
 
 Thus, to optimize our variational autoencoder, we should maximize $L$. In other words, $-L$ is our loss function. The only problem left to solve is that the second term is an expectation (which we cannot compute explicitly). 
+
 \qu How is this solved in practice?
 
-\ans{We take a single sample from $\rc{q}(\z\mid \x)$ and use $\ln p(\x\mid \x)$ as a (very crude) estimate of the expectation term. To let the gradient propagate through the sampling, we add a sample from the standard MVN to the input and transform it to a sample from $\rc{q}$ by multiplying by a matrix $A$ (with $\Sigma = AA^T$) and adding the mean.}{}
+\ans{We take a single sample from $\rc{q_\bv}(\z\mid \x)$ and use $\ln \gc{p_\bw}(\x\mid \z)$ as a (very crude) estimate of the expectation term. 
+
+To let the gradient propagate through the sampling, we add a sample from the standard MVN to the input and transform it to a sample from $\rc{q_\bv(\z\mid \x)}$ by multiplying by a matrix $A$ (with $\Sigma = AA^T$) and adding the mean.}{}
 
 \end{document}
 

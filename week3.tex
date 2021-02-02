@@ -7,76 +7,135 @@
 \usepackage{qtree}
 \usepackage{xfrac}
 
-\title{Week 3: ROC curves, Normalization and PCA}
-
+\title{week 3: ROC curves, Normalization and PCA}
+\author{\url{http://mlvu.github.io}}
 \begin{document}
 
 \maketitle
+\section{Exam questions}
+
+At this point in the course, it's a good idea to have a look at the practice exam. The homework prepares you for the exam, but the format of the homework questions is different from that of the exam questions. Here are some questions you should be able to answer based on the material covered so far. You can find two complete practice exams on Canvas.
+
+\begin{enumerate}
+\item What is the advantage of gradient descent over random search?
+\choicesv{In gradient descent, parallel searches are allowed to communicate.}{Gradient descent is less likely to get stuck in local minima.}{Gradient descent computes the direction of steepest descent, random search approximates it.\an}{Gradient descent is easier to parallelise.}
+
+% 12 R
+\item Why is accuracy a bad loss function to use in gradient descent?
+\choicesv{It is expensive to compute.}{It makes the gradient zero almost everywhere. \an}{It is unreliable in situations with high class imbalance.}{The confidence interval is high on small test sets.}
+
+% 11 R
+\item I'm performing spam classification. I represent each email by three numbers: how often the word \emph{pill} occurs, how often the word \emph{hello} occurs and how often the word \emph{congratulations} occurs. What are these three attributes called?
+\choicesv{The instances}{The classes}{The features \an}{The principal components}
+\end{enumerate}
+
+\noindent Here we see the derivation of the gradient of the squared-error loss for linear regression.
+
+\begin{align}
+\frac{\kp \frac{1}{2}\sum_i \left(f(x_i) - y_i\right)^2}{\kp b}	&= \frac{1}{2}\frac{\kp \sum_i \left(x_iw + b - y_i\right)^2}{\kp b}  \label{line:zero}\\
+&= \frac{1}{2}\sum_i \frac{\kp \left(x_iw + b - y_i\right)^2}{\kp b} \label{line:sum}\\
+&= \frac{1}{2}\sum_i \frac{\kp \left(x_iw + b - y_i\right)^ 2}{\kp \left(x_iw + b - y_i\right)} \frac{\kp \left(x_iw + b - y_i\right)}{\kp b} \label{line:chain}\\
+&= \sum_i \left(x_iw + b - y_i\right) \frac{\kp \left(x_iw + b - y_i\right)}{\kp b} \label{line:exp}\\
+&=  \ans{\sum_i\left ( x_iw + b - y_i\right)}{...} \label{line:final}
+\end{align}
+
+\begin{enumerate}[resume]
+
+% 12 A
+\item To get from line (\ref{line:zero}) to line (\ref{line:sum}), we use the 
+\choices{Chain rule}{Product rule}{Exponent rule}{Sum rule \an}
+
+%12 A
+\item To get from line (\ref{line:sum}) to line (\ref{line:chain}), we use the 
+\choices{Chain rule \an}{Product rule}{Exponent rule}{Sum rule}
+
+\item In line \ref{line:final}, the correct result is 
+\choicesv{$\sum_i \left({x_i}^2w + b - y_i\right)$}{$\sum_i x_i \left(x_iw + b - y_i\right)$}{$\sum_i \left( x_iw + b - y_i\right)$ \an}{$\sum_i \left(x_iw + b - y_i\right)^2$}
+
+\end{enumerate}
+
 \section{ROC Curves and confusion matrices}
 
-In the first part of this homework section we'll look at evaluation metrics. This section covers the lecture "Methodology 1" and chapter 2 of the book. 
+In this section, we'll look at evaluation metrics. This section covers the lecture ``Methodology 1'' and section 2.2 of Peter Flach's \emph{Machine Learning} (see the PDF on Canvas).
 
-As a running example, we will use the following classification problem:
+As a running example, we will use the following classification dataset:
 
 \begin{center}
 	\begin{tabular}{c c c c}
-		& $x_1$ & $x_2$ & label\\
+		& ${x_1}$ & ${x_2}$ & label\\
 		\hline
-		a & 1 & 0 & Neg \\
-		b & 2 & 0 & Pos \\
-		c & 3 & 0 & Pos \\
-		d & 0 & $\sfrac{1}{2}$ & Pos \\
-		e & 2 & 2 & Pos \\
-		f & 0 & 3 & Neg \\
-		g & 1 & 3 & Neg \\
-		h & 2 & 3 & Neg \\
+		\kc{a} & 1 & 0 & \rc{Neg} \\
+		\kc{b} & 2 & 0 & \bc{Pos} \\
+		\kc{c} & 3 & 0 & \bc{Pos} \\
+		\kc{d} & $\sfrac{1}{2}$ & 1 & \bc{Pos} \\
+		\kc{e} & 2 & 2 & \bc{Pos} \\
+		\kc{f} & 0 & 3 & \rc{Neg} \\
+		\kc{g} & 1 & 3 & \rc{Neg} \\
+		\kc{h} & 2 & 3 & \rc{Neg} \\
 		\hline
 	\end{tabular}
 \end{center}
+If you have trouble with the exercises below, we recommend drawing the data in its feature space, and drawing the decision boundary of each classifier.
 
 \subsection{A linear classifier}
-	As a first classifier, $c$, we will use a diagonal line crossing all the points where $x_1 = x_2$. Points above this line will be classified as \emph{Neg}, points below or on the line as \emph{Pos}. How do we describe this classifier mathematically? Fill in the blanks:
+
+\qu As a first classifier, $c_\text{\oc{lin}}$, we will use a diagonal line crossing all the points where $x_1 = x_2$. Points above this line will be classified as \rc{Neg}, points below or on the line as \bc{Pos}. How do we describe this classifier mathematically? Fill in the blanks:
 	\[
-	c_\text{lin}(x_1, x_2) = \begin{cases} \text{Pos} & \text{ if } \ans{x_1 \geq x_2}{\ldots} \\ \text{Neg} & \text{otherwise}\end{cases}\p
-	\]
-	
-	
-This is a simple classifier. Let's try a more complex one before we move on. Let $c_2$ be the classifier whose decision boundary crosses the points $(0, 1)$ and $(1, 1.5)$, with the class \emph{Neg} above the line. Draw this line first. How do we define this classifier?
+	c_\text{\oc{lin}}(x_1, x_2) = \begin{cases} \text{\bc{Pos}} & \text{ if } \ans{x_1 \geq x_2}{\ldots} \\ \text{\rc{Neg}} & \text{otherwise}\end{cases}\p
+	\]	
+\ans{The diagonal that the question asks for (the decision boundary) is the set of points where $x_1 = x_2$. If $x_1 > x_2$, we're above this line, so we should classify the point as \bc{Pos}.}{}
+
+\noindent $c_\text{lin}$ is a simple classifier. Let's try a more complex one before we move on. 
+
+\qu Let $c_\oc{2}$ be the classifier whose decision boundary crosses the points $(0, 1)$ and $(1, 1.5)$, with the class \emph{Neg} above the line. Draw this line first. How do we define this classifier?
 	\[
-	c_2(x_1, x_2) = \begin{cases} \text{Pos} & \text{ if } \ans{- 0.5 x_1 + x_2 - 1 < 0}{\ldots} \\ \text{Neg} & \text{otherwise}\end{cases}
+	c_\oc{2}(x_1, x_2) = \begin{cases} \text{\bc{Pos}} & \text{ if } \ans{- 0.5 x_1 + x_2 - 1 < 0}{\ldots} \\ \text{\rc{Neg}} & \text{otherwise}\end{cases}
 	\]
 \ans{
 
 We could fill the given values in to the equation $ax_1 + bx_2 + c = 0$ and solve for zero. But that would give us two problems: it's a lot of work, and we have two equations for three variables. There are infinitely many pairs $a$ and $b$ that would give us this decision boundary. Let's make things easier by assuming that $b$ is 1, and rewriting to $x_2 = -ax_1 - c$. This is just the familiar function for a line in the plane: $-a$ is the slope, and $-c$ is the bias.
 
+The given points tell us that the line crosses the $x_2$ axis at 1, and the slope should be $0.5$. Thus, $-a = 0.5$ and $-c = 1$. A quick check tells us that for a point below the line, $(0,0)$, the quantity $- 0.5 x_1 + x_2 - 1$ is negative, so such points should be classified as \bc{Pos}.
 
-The given points tell us that the line crosses the $x_2$ axis at 1, and the slope should be $0.5$. Thus, $-a = 0.5$ and $-c = 1$. A quick check tells us that for a point below the line, $(0,0)$, the quantity $- 0.5 x_1 + x_2 - 1$ is negative, so such points should e classified as \emph{Pos}.}{}	
+Here is a diagram of the data and the boundaries for the two classifiers:
 
-\subsection{A tree classifier}
-We will compare this classifier with a decision tree classifier, $c_\text{tree}$. Here is the decision tree:
+{\centering
+\includegraphics[width=0.7\linewidth]{{w3.linear}.pdf}
+}
 
-\Tree[.{$x_2 > 1.5$?} [.{$x_1 > 0.5$?} [.{\ans{Pos}{A}} ][.{\ans{Pos}{B}} ] ][.{$x_1 > 1.5$?} [.{\ans{Neg}{C}} ][.{\ans{Pos}{D}} ] ] ]
+}{}	
+	
+\qu We will compare the linear classifier $c_\text{\oc{lin}}$ with a \emph{decision tree} classifier, $c_\text{\oc{tree}}$. Here is the decision tree:
 
-If the inequality on the node is true, move right, otherwise move left.
+\Tree[.{$x_2 > 1.5$?} [.{$x_1 > 0.5$?} [.{\ans{\bc{Pos}}{\oc{A}}} ][.{\ans{\bc{Pos}}{\oc{B}}} ] ][.{$x_1 > 1.5$?} [.{\ans{\rc{Neg}}{\oc{C}}} ][.{\ans{\bc{Pos}}{\oc{D}}} ] ] ]
 
-This tree divides the feature space into four segments (A, B, C and D). To each segment we assign the majority class in that segment (using \emph{Pos} for a draw). Label the leaves A, B, C and D with classes.
+\noindent If the inequality on the node is true, move right, otherwise move left.
 
-\subsection{Training loss}
+This tree divides the feature space into four \textbf{segments} (\oc{A}, \oc{B}, \oc{C} and \oc{D}). To each segment we assign the majority class in that segment (using \bc{Pos} for a draw). Label the leaves \oc{A}, \oc{B}, \oc{C} and \oc{D} with classes.
 
-To make this exercise a little easier, we'll calculate all metrics on the training data. Of course, in reality you would do this on the \ans{validation data}{\ldots} during hyperparameter selection and on the \ans{test data}{\ldots} during final testing.
+\ans{Here is a diagram of the data and the boundaries for the tree classifier:
+
+{\centering
+\includegraphics[width=0.7\linewidth]{{w3.tree}.pdf}
+}
+
+}{}
+
+\qu In this exercise we don't do any training (we just evaluate the given classifiers), so we'll evaluate all metrics on a single given dataset.
+
+If you do train, you would \emph{split} your dataset. You would compute your evaluation metrics on the \ans{validation data}{\ldots} during hyperparameter selection and on the \ans{test data}{\ldots} during final testing.
 
 
 Evaluating on the training data is the worst sin you can commit in Machine Learning. Can you think of a situation when you would still want to \emph{compute} the training loss?
 
 \ans{Getting good training loss, but poor validation loss is a sure sign of overfitting. If overfitting is likely (as it is in decision trees and neural networks), you may want to compare the training loss to the validation loss to see if overfitting explains the poor performance.}{}
 
-\subsection{Confusion matrices}
-Give the confusion matrices for classifiers $c_\text{lin}$ and $c_\text{tree}$. 
+\qu Give the \emph{confusion matrices} for classifiers $c_\text{\oc{lin}}$ and $c_\text{\oc{tree}}$. 
 \ans{
 
 \begin{center}
 \begin{tabular}{c c | c c}
-$c_\text{lin}$  & & predicted & \\
+$c_\text{\oc{lin}}$  & & predicted & \\
  & & Pos & Neg \\
 \hline 
 true & Pos & 3 & 1 \\
@@ -86,7 +145,7 @@ true & Pos & 3 & 1 \\
 
 \begin{center}
 \begin{tabular}{c c | c c}
-$c_\text{tree}$  & & predicted & \\
+$c_\text{\oc{tree}}$  & & predicted & \\
  & & Pos & Neg \\
 \hline 
 true & Pos & 4 & 0 \\
@@ -95,20 +154,18 @@ true & Pos & 4 & 0 \\
 \end{center}
 }{}
 
-\subsection{Metrics}
+\qu From the confusion matrices, we can compute several metrics. Compute the accuracy, precision, recall, true positive rate and false positive rate
 
-From the confusion matrices, we can compute several metrics. Compute the accuracy, precision, recall, true positive rate and false positive rate
-
-\emph{NB: The slides used in the video (Methodology 2) contain some mistakes. Please use the most recent PDF version of the slides, or the definitions in the book.}
 \ans{
+We compute these metrics from the four values of the confusion matrix: the number of true positives (TP), true negatives (TN), false positives (FP) and false negatives(FN):
 
 \begin{center}
 \begin{tabular}{c c | c c}
   & & predicted & \\
- & & Pos & Neg \\
+ & & \bc{Pos} & \rc{Neg} \\
 \hline 
-true & Pos & TP & FN \\
-     & Neg & FP & TN \\
+true & \bc{Pos} & T\bc{P} & F\rc{N} \\
+     & \rc{Neg} & F\bc{P} & T\rc{N} \\
 \end{tabular}
 \end{center}
 
@@ -116,90 +173,107 @@ true & Pos & TP & FN \\
 \bgroup
 \def\arraystretch{2}
 \begin{tabular}{r c c c}
-& & $c_\text{lin}$ & $c_\text{tree}$	 \\
+& & $c_\text{\oc{lin}}$ & $c_\text{\oc{tree}}$	 \\
 \hline
-accuracy & $\frac{TP + TN}{\text{total}}$ & $\sfrac{3}{4}$ & $\sfrac{3}{4}$ \\
-precision & $\frac{TP}{TP + FP}$ & $\sfrac{3}{4}$ & $\sfrac{2}{3}$\\
-recall & $\frac{TP}{TP + FN}$ & $\sfrac{3}{4}$ & $1$ \\
-true positive rate & $\frac{TP}{TP + FN}$  & $\sfrac{3}{4}$ & $1$ \\
-false positive rate & $\frac{FP}{TN + FP}$  & $\sfrac{1}{4}$ & $\sfrac{1}{2}$\\
+accuracy & $\frac{T\bc{P} + T\rc{N}}{\text{total}}$ & $\sfrac{3}{4}$ & $\sfrac{3}{4}$ \\
+precision & $\frac{T\bc{P}}{T\bc{P} + F\bc{P}}$ & $\sfrac{3}{4}$ & $\sfrac{2}{3}$\\
+recall & $\frac{T\bc{P}}{T\bc{P} + F\rc{N}}$ & $\sfrac{3}{4}$ & $1$ \\
+true positive rate & $\frac{T\bc{P}}{T\bc{P} + F\rc{N}}$  & $\sfrac{3}{4}$ & $1$ \\
+false positive rate & $\frac{F\bc{P}}{T\rc{N} + F\bc{P}}$  & $\sfrac{1}{4}$ & $\sfrac{1}{2}$\\
 \end{tabular}
 \egroup
 \end{center}
+
+Most of these are pretty intuitive, if you work out the meaning of the various sums. For instance, the false positive rate is the proportion of actual negatives, that were predicted to be positive.
+
 }{}
 
-\subsection{Ranking classifiers}
+\noindent To plot a ROC and precision/recall curves, and to compute AUC metrics, we need to turn our simple binary classifier into a \emph{ranking} classifier. That is, we don't just want classifications, we want it to rank the data from most \rc{Neg} to most \bc{Pos}. How we do this depends on the classifier. 
 
-How do we turn a linear classifier into a ranking classifier? Give the ranking that $c_\text{lin}$ assigns to the training data.
+\qu How do we turn a linear classifier into a ranking classifier? Give the ranking that $c_\text{lin}$ assigns to the training data.
 
-\ans{We compute the distance to the classification boundary (the negative distance on one side, and the positive on the other), and rank points by this distance. 
+\ans{We compute the distance to the classification boundary (the negative distance on one side, and the positive on the other), and rank points by this distance. For this course (the homework and the exam), you don't actually need to compute the distance, it's fine to draw the dataset and ``measure'' the distances. We'll make sure that all examples allow this approach.
 
-For $c_\text{lin}$ the ranking from negative to positive is
+Here's the sort of diagram you should end up with:
+
+{\centering
+\includegraphics[width=0.9\linewidth]{{w3.ranking}.pdf}
+}
+
+
+
+So, for $c_\text{\oc{lin}}$ the ranking from negative to positive is
 \[
-f~g~h~d~e~a~b~c~\text{.}
-\]}
+\bf{\rc{f}~\rc{g}~\rc{h}~\bc{d}~\bc{e}~\rc{a}~\bc{b}~\bc{c}}~\text{.}
+\]}{}
 
+\qu
 How do we turn a decision tree classifier into a ranking classifier? Give the ranking that $c_\text{tree}$
  assigns to the training data.
 
 \ans{
 We group the points by the way the decision tree segments the feature space. We then assign each segment a class probability based on the relative frequencies of \emph{training} data points. We sort the groups by class probability. Points within the same group are ranked equal.
 
-For $c_\text{lin}$ the ranking from negative to positive is
+For $c_\text{\oc{tree}}$ the ranking from negative to positive is
 \[
-(f~g)~(h~e)~(a~b~c)~(d) \text{.}
+(\rc{\bf{f}}~\rc{\bf{g}})~(\rc{\bf{h}}~\bc{\bf{e}})~(\rc{\bf{a}}~\bc{\bf{b}}~\bc{\bf{c}})~(\bc{\bf{d}}) \text{.}
 \]
 Brackets indicate equal rank.
-}
+}{}
 
-\subsection{Coverage matrices}
-
-We can't tell whether our ranking is perfect, because the training data doesn't give us a full ranking, only a labeling. But for some pairs we \emph{do} know how they should be ranked: all pairs of positive and negative examples. 
+We can't tell whether our ranking is perfect, because the training data doesn't give us a correct \emph{ranking}, only a correct \emph{labeling}. But for some pairs of instances we \emph{do} know how they should be ranked: all pairs of positive and negative examples. 
 
 
-We can visualize this in a matrix with negative instances on the horizontal axis, and positive instances on the vertical, both sorted with the most positive (according to the ranking) in the bottom left corner. The matrix is usually colored green for pairs ranked correctly, red for pairs ranked incorrectly, and yellow for pairs that are ranked equal.
+We can visualize this in a matrix with \rc{negative} instances on the horizontal axis, and \bc{positive} instances on the vertical, both sorted with the most positive (according to the classifier's ranking) in the bottom left corner. The matrix is usually colored \gc{green} for pairs that are ranked correctly, \rc{red} for pairs ranked incorrectly, and \yc{yellow} for pairs that are ranked equal.
 
+\qu
 
-Draw the coverage matrices of $c_\text{lin}$ and $c_\text{tree}$.
+\begin{enumerate}
+\item Draw the coverage matrices of $c_\text{\oc{lin}}$ and $c_\text{\oc{tree}}$.
 
 \ans{
 
 \begin{center}
 \begin{tabular}{c | c c c c}
-	d & \cellcolor{DarkRed}   & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} \\
-	e & \cellcolor{DarkRed}   & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} \\
-	b & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} \\
-	c & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} \\
+	\bc{d} & \cellcolor{DarkRed}   & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} \\
+	\bc{e} & \cellcolor{DarkRed}   & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} \\
+	\bc{b} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} \\
+	\bc{c} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} \\
 	\hline
-	$c_\text{lin}$ & a & h & g & f \\	
+	$c_\text{\oc{lin}}$ & \rc{a} & \rc{h} & \rc{g} & \rc{f} \\	
 \end{tabular}	
 \end{center}
 
 \begin{center}
 \begin{tabular}{c | c c c c}
-	e & \cellcolor{DarkRed}   & \cellcolor{DarkOrange} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} \\
-	c & \cellcolor{DarkOrange}   & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} \\
-	b & \cellcolor{DarkOrange} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} \\
-	d & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} \\
+	\bc{e} & \cellcolor{DarkRed}   & \cellcolor{DarkOrange} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} \\
+	\bc{c} & \cellcolor{DarkOrange}   & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} \\
+	\bc{b} & \cellcolor{DarkOrange} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} \\
+	\bc{d} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} & \cellcolor{DarkGreen} \\
 	\hline
-	$c_\text{tree}$ & a & h & f & g \\	
+	$c_\text{\oc{tree}}$ & \rc{a} & \rc{h} & \rc{f} & \rc{g} \\	
 \end{tabular}	
 \end{center}
 
 }{}
 
-How many ranking errors does each classifier make on the training data? 
+\item How many ranking errors does each classifier make on the training data? 
 \ans{$c_\text{lin}$ makes 2 ranking errors. $c_\text{tree}$ makes 2.5, counting each tie as half a ranking error.}{}
 
-If we have class imbalance, how can we tell by the coverage matrix?
+\item If we have class imbalance (one class has more instances than the other), how can we tell by the coverage matrix?
 
 \ans{It will be non-square. The more stretched out, the higher the class imbalance.}{}
 
-\subsection{ROC Curves}
+\end{enumerate}
 
-How do we convert a coverage matrix to an ROC plot? How does the green area in a coverage matrix relate to the ROC plot? How do they differ?
+\qu How do we convert a coverage matrix to an \textbf{ROC plot}? How does the green area in a coverage matrix relate to the ROC plot? How do they differ?
 
 \ans{We can convert the coverage matrix to ROC space by normalizing the axes. That is, if we have a green cell at $(2, 3)$, counting from the bottom left, we can draw a point in ROC space at $(\sfrac{2}{4}, \sfrac{3}{4})$. That is, we know we have a classifier that can achieve a true positive rate of $\sfrac{3}{4}$ and a false negative rate of $\sfrac{2}{4}$.
+
+
+{\centering
+\includegraphics[width=0.9\linewidth]{{w3.roc}.pdf}
+}
 
 The green area gives us an estimate of the probability of a ranking error. The same is true of the \emph{Area Under the Curve}. For the latter, we draw the convex hull of all achievable classifiers, and compute the area.
 
@@ -219,49 +293,46 @@ An important difference is that the green area in a coverage matrix may be \emph
 
 The corresponding ROC curve is convex (it covers the bottom right half of the ROC space).
 
-Since classifier with AUC below 0.5 is pretty useless, we don't usually worry about this. The differences between the (normalized) coverage matrix and the ROC space are not imtportant for reasonable classifiers and large datasets.
+Since a classifier with AUC below 0.5 is pretty useless, we don't usually worry about this. The differences between the (normalized) coverage matrix and the ROC space are not important for reasonable classifiers and large datasets.
 
 }{}
 
-\section{PCA}
+\section{Whitening}
 
-In the second half of this week's homework we will focus on Principal Component Analysis, as explained in the lecture \emph{Methodology 2}. It's also briefly discuss in chapter 10, in the book, which we will read later.
+\paragraph{Basis systems} The \emph{standard basis system} (in 2D) is just the vectors $b_1 =\begin{pmatrix}1 \\0\end{pmatrix}$ and $b_2 = \begin{pmatrix}0 \\1\end{pmatrix}$. When a point has coordinates $(x, y)$, that just means that we can get to the point by adding $x$ times the $b_1$ vector to $y$ times the $b_2$ vector.
 
-Principal Component Analysis is an important subject, and it pays to understand it well. Unfortunately, very little of it can be easily computed by hand, so it makes for a poor homework exercise. 
+For the standard basis, we just end up at the point $\begin{pmatrix}x \\y\end{pmatrix}$. But we can also use a nonstandard basis. If a point $p$ has coordinates $(x, y)$ in the coordinate system with basis vectors $b_1$, $b_2$, it means that $p$ has coordinates $xb_1 + yb_2$ in the standard basis system. 
 
-Instead, we will go over some of the fundamental concepts like changing bases, and fitting a covariance matrix. Hopefully, getting some hands-on experience with this will help you to better understand the principles behind PCA.
-
-\subsection{Changing bases}
-
-Convert the following points to a representation in the standard basis system.
+\qu Convert the following points to a representation in the standard basis system.
 
 \begin{enumerate}
-	\item The point $\begin{pmatrix}1 \\1\end{pmatrix}$ expressed in the coordinate system with basis vectors $b_1 = \begin{pmatrix}2 \\0\end{pmatrix}$, $b_2 = \begin{pmatrix}0 \\2\end{pmatrix}$. \ans{$\begin{pmatrix}2 \\2\end{pmatrix}$}{}
+	\item The point $\begin{pmatrix}1 \\1\end{pmatrix}$ expressed in the coordinate system with basis vectors $b_1 = \begin{pmatrix}2 \\0\end{pmatrix}$, $b_2 = \begin{pmatrix}0 \\2\end{pmatrix}$. \ans{$x = 1, y=1$, so we get to the standard basis point by computing $1 \cdot b_1 + 1 \cdot b_1 = \begin{pmatrix}2 \\2\end{pmatrix}$}{}
 	\item The point $\begin{pmatrix}5 \\3 \end{pmatrix}$ expressed in the coordinate system with basis vectors $b_1 = \begin{pmatrix}0 \\1\end{pmatrix}$, $b_2 = \begin{pmatrix}1 \\0\end{pmatrix}$. \ans{$\begin{pmatrix}3 \\5 \end{pmatrix}$}{}
 	\item The point $\begin{pmatrix}1 \\2 \end{pmatrix}$ expressed in the coordinate system with basis vectors $b_1 = \begin{pmatrix}1 \\2\end{pmatrix}$, $b_2 = \begin{pmatrix}3 \\4\end{pmatrix}$. \ans{$\begin{pmatrix} 7\\ 10\end{pmatrix}$}{}
 \end{enumerate}
 
-\subsection{Orthonormality}
-
+\qu A basis system is \textbf{orthonormal} if two conditions hold:
+\begin{enumerate}
+	\item \ans{The basis vectors all have norm (i.e. length) 1. (normality)}{\ldots}
+	\item \ans{The angles between any two basis vectors are $90\deg$. (orthogonality) }{\ldots}
+\end{enumerate}
 Consider the following three bases: 
-
 \[
 	\A     = \begin{pmatrix}0 & 1\\1 & 1\end{pmatrix} \;\;
 	\B     = \begin{pmatrix}1 & -1\\1 & 1\end{pmatrix} \;\;
 	\bm{C} = \sqrt{\sfrac{1}{2}}\begin{pmatrix}1 & -1\\1 & 1\end{pmatrix}
 \]
 The columns of each matrix are the basis vectors (it may help to draw them in standard coordinates). Which of these have orthogonal basis vectors? Which one is orthonormal?
+\ans{The columns of $\A$ are neither normal nor orthogonal. Matrix $\B$ has orthogonal columns, but they are not unit vectors (vectors of length one). Matrix $\C$ represents an orthonormal basis.}{}
 
-\ans{Matrices $\B$ and $\C$ have orthogonal columns. Matrix $\C$ represents an orthonormal basis.}
+\qu Why is it useful to have an orthonormal basis?
+\ans{Matrices representing an orthonormal basis are \emph{orthogonal}. This means that $\C^{-1} = \C^T$. This means that we can easily transform from and to the basis without having to compute an expensive matrix inverse.}
 
+\paragraph{Covariance and normal distributions}
 
-Why is it useful to have an orthonormal basis?
+PCA is closely related to the normal distribution. We can think of PCA as a basis transformation that makes it look like the data was sampled from a standard multivariate normal distribution: it makes the variance 1 in every dimension, and the covariance 0 for every pair of dimensions.
 
-\ans{Matrices representing an orthonormal basis are \emph{orthogonal}. This means that $\C^{-1} = \C^T$. This mean that we can easily transform from and to the basis without having to compute a matrix inverse.}
-
-\subsection{Covariance matrix}
-
-Here is some data.
+\qu Here is some data.
 
 \begin{tabular}{c c}
 $x_1$ & $x_2$ \\
@@ -273,7 +344,7 @@ $x_1$ & $x_2$ \\
 \hline
 \end{tabular}
 
-Compute the sample covariance.
+\noindent Compute the sample covariance.
 
 \ans{
 We first compute the sample mean: $\bm{m} = \begin{pmatrix} 1 \\ 1\end{pmatrix}$. 
@@ -287,83 +358,86 @@ The sample covariance is
 \begin{align*}
 \bm{S} = \frac{1}{n-1} \X\X^T = \frac{1}{3}\begin{pmatrix} 4 & -4  \\  -4 & 4 \end{pmatrix}
 \end{align*}
-
 }{}
 
-\subsection{Multivariate Normal Distributions}
-
-Let $\y = \A\x + \bt$ be an \emph{affine} transformation (a linear transformation followed by a translation). We draw $\x$ from a standard normal distribution
+\noindent Let $\y = \A\x + \bt$ be an \emph{affine} transformation (a linear transformation $\A$ followed by a translation $\bt$). We draw $\x$ from a standard normal distribution
 \[
 N(\mathbf{0}, \mathbf{I}) = N\left( \begin{pmatrix}0 \\ 0\end{pmatrix}, \begin{pmatrix}1 & 0 \\ 0 & 1\end{pmatrix} \right)
 \]
-and compute $\y$. This is equivalent to sampling from a normal distribution with mean $\bm{\mu}$ and covariance $\bm{\Sigma}$. What are $\bm{\mu}$ and $\bm{\Sigma}$? (This is given in the slides, you don't have to work it out yourself).
-\ans{
-\[
-\bm{\mu} = \bt, \;\;\; \bm{\Sigma} = \A\A^T
-\]
-}
+and compute $\y$. This is equivalent to sampling from a normal distribution with mean $\bm{\mu} = \bt$ and covariance $\bm{\Sigma} = \A\A^T $.
 
-For a simple example let 
+\qu Let 
 \[
 \mathbf{A} = \begin{pmatrix} 1 & 0 \\ 0 & 2\end{pmatrix}, \mathbf{t} = \begin{pmatrix} 1 \\ 1\end{pmatrix}
 \]
-
-Sampling $\x$ from $N(\bm{0}, \bm{I})$ is easy, we just sample $x_1$ and $x_2$ independently from a univariate standard normal distributions. Here are some \href{https://goo.gl/Jw7Hjm}{standard normally distributed numbers}:
+Sampling $\x$ from $N(\bm{0}, \bm{I})$ is easy: we just sample $x_1$ and $x_2$ independently from a \emph{uni}variate standard normal distributions. Here are some \href{https://goo.gl/Jw7Hjm}{standard normally distributed numbers}:
 \[
 0.5, 1.1, 0.1, 0.9, -0.2, 1.3
 \]
 
-Take three samples from $N(\bm{0}, \bm{I})$ and transform them to samples from $N(\bm{\mu},\bm{\Sigma})$.
+\noindent Turn these into three samples from $N(\bm{0}, \bm{I})$ and transform them to samples from $N(\bm{\mu},\bm{\Sigma})$.
 
 \ans{
 Using samples
 \[
-x_1 = \ma{0.5 & 1.1}, \;\; x_2 = \ma{0.1 & 0.9} \;\; x_3 = \ma{-0.2 & 1.3}
+\x^1 = \ma{0.5, & 1.1}^T, \;\; \x^2 = \ma{0.1, & 0.9}^T \;\; \x^3 = \ma{-0.2, & 1.3}^T
 \]
-we get 
+and computing $\y^1 = \A\x^1 + \bt$, we get:
 \[
-y_1 = \ma{1.5 & 3.2}, \;\; y_2 = \ma{1.1 & 2.8} \;\; y_3 = \ma{0.8 & 3.6}\p
+\y^1 = \ma{1.5, & 3.2}^T, \;\; \y^2= \ma{1.1, & 2.8}^T \;\; \y^3 = \ma{0.8, & 3.6}^T\p
 \]
 }{}
 
-\subsection{Singular value decomposition}
-\emph{This question may be a little challenging if you're new to Linear Algebra. If you're struggling, have another look at the slides from the \emph{Methodology 2} lecture. If you can't work it out, read the answer, and see if you can repeat the process on another matrix.}
 
-Let $\A$ be a linear transformation. This transformation has two eigenvectors, which are aligned with the standard basis vectors. The eigenvalue along the horizontal axis is $3$, and along the vertical axis is $2$. What is $\A$?
+\paragraph{Bonus question:} Compute the sample covariance of the resulting data, and the actual covariance $\Sigma$.
 
-\ans{$\A$ is a \emph{scaling matrix}. That means it's a diagonal matrix, with the eigenvalues on the diagonal: 
+\ans{For the sample covariance, follow the same procedure as in the previous question. After a bit of calculating, we get:
 \[
-\begin{pmatrix} 3 & 0 \\ 0  & 2 \end{pmatrix}
+\bf{S} \approx \ma{0.123 & 0.06\\0.06 & 0.16}
 \]
+
+The true covariance we get by computing $\bf{\Sigma} =\A\A^T = \ma{1 & 0 \\ 0 & 4}$. They're quite different at the moment. If we increase the size of the sample, $\bf{S}$ will converge to $\bf{\Sigma}$.
 }{}
-
-Let $\B$ be a linear transformation. $\B$ has two eigenvectors, one points in the direction of the horizontal axis rotated by 45 degrees, and the other in the direction of the vertical axis rotated by 45 degrees.
-For both, The eigenvalue for the first is 5, and for the second is 2. What is $\B$?
-\ans{
-If the eigenvectors were axis-aligned (as with $\A$), $\B$ would be 
-\[
-\bm{Z} = \begin{pmatrix} 5 & 0 \\ 0  & 2 \end{pmatrix}
-\]
-We can use this by decomposing $\B$ in three steps: rotating by -45 degrees to align the axes to the eigenvectors, applying $\bm{Z}$ and rotating back. The rotation matrix for a 45 degree rotation is
-\[
-\U = \sqrt{\sfrac{1}{2}}\begin{pmatrix} 1 & -1 \\ 1 & 1\end{pmatrix} \p
-\]
-Since $\U$ is orthogonal (it columns form an orthonormal basis), we can take the transpose $\U^T$ to rotate back. Putting all this together, we get
-\[
-\B\x = \U\Z\U^T\x \p
-\]
-
-This is the singular value decomposition of $\B$. This gives us
-
-\begin{align*}
-\B = \U\Z\U^T &= \sqrt{\sfrac{1}{2}}\begin{pmatrix}1 & -1\\1 & 1\end{pmatrix}\begin{pmatrix} 5 & 0 \\ 0 & 2\end{pmatrix}\sqrt{\sfrac{1}{2}}\begin{pmatrix}1 & 1\\-1 & 1\end{pmatrix}\\
-&= \frac{1}{2}\begin{pmatrix}1 & -1\\1 & 1\end{pmatrix}\begin{pmatrix} 5 & 0 \\ 0 & 2\end{pmatrix}\begin{pmatrix}1 & 1\\-1 & 1\end{pmatrix}\\
-&= \frac{1}{2}\begin{pmatrix}5 & -2\\5 & 2\end{pmatrix}\begin{pmatrix}1 & 1\\-1 & 1\end{pmatrix} \\
-&= \frac{1}{2}\begin{pmatrix}7 & 3\\3 & 7\end{pmatrix} = \begin{pmatrix}3.5 & 1.5\\1.5 & 3.5\end{pmatrix}
-\end{align*}
-
-As usual, we can check with \href{https://goo.gl/v8d4Yg}{Wolfram Alpha} to see we haven't made any mistakes. You may get $-\U$ instead of $\U$. The negatives cancel out, so the SVD can work out both ways.
-}{}
-
+%
+%\paragraph{Singular value decomposition}
+%\emph{These questions may be a little challenging if you're new to Linear Algebra. If you're struggling, have another look at the slides from the \emph{Methodology 2} lecture. If you can't work it out, read the answer, and see if you can repeat the process on another matrix.}
+%
+%\begin{Exercise}
+%Let $\A$ be a linear transformation. This transformation has two eigenvectors, which are aligned with the standard basis vectors. The eigenvalue along the horizontal axis is $3$, and along the vertical axis is $2$. What is $\A$?
+%
+%\ans{$\A$ is a \emph{scaling matrix}. That means it's a diagonal matrix, with the eigenvalues on the diagonal: 
+%\[
+%\begin{pmatrix} 3 & 0 \\ 0  & 2 \end{pmatrix}
+%\]
+%}{}
+%\end{Exercise}
+%
+%Let $\B$ be a linear transformation. $\B$ has two eigenvectors, one points in the direction of the horizontal axis rotated by 45 degrees, and the other in the direction of the vertical axis rotated by 45 degrees.
+%The eigenvalue for the first is 5, and for the second is 2. What is $\B$?
+%\ans{
+%If the eigenvectors were axis-aligned (as with $\A$), $\B$ would be 
+%\[
+%\bm{Z} = \begin{pmatrix} 5 & 0 \\ 0  & 2 \end{pmatrix}
+%\]
+%We can use this by decomposing $\B$ in three steps: rotating by -45 degrees to align the axes to the eigenvectors, applying $\bm{Z}$ and rotating back. The rotation matrix for a 45 degree rotation is
+%\[
+%\U = \sqrt{\sfrac{1}{2}}\begin{pmatrix} 1 & -1 \\ 1 & 1\end{pmatrix} \p
+%\]
+%Since $\U$ is orthogonal (its columns form an orthonormal basis), we can take the transpose $\U^T$ to rotate back. Putting all this together, we get
+%\[
+%\B\x = \U\Z\U^T\x \p
+%\]
+%
+%This is the eigenvalue decomposition of $\B$. This gives us
+%
+%\begin{align*}
+%\B = \U\Z\U^T &= \sqrt{\sfrac{1}{2}}\begin{pmatrix}1 & -1\\1 & 1\end{pmatrix}\begin{pmatrix} 5 & 0 \\ 0 & 2\end{pmatrix}\sqrt{\sfrac{1}{2}}\begin{pmatrix}1 & 1\\-1 & 1\end{pmatrix}\\
+%&= \frac{1}{2}\begin{pmatrix}1 & -1\\1 & 1\end{pmatrix}\begin{pmatrix} 5 & 0 \\ 0 & 2\end{pmatrix}\begin{pmatrix}1 & 1\\-1 & 1\end{pmatrix}\\
+%&= \frac{1}{2}\begin{pmatrix}5 & -2\\5 & 2\end{pmatrix}\begin{pmatrix}1 & 1\\-1 & 1\end{pmatrix} \\
+%&= \frac{1}{2}\begin{pmatrix}7 & 3\\3 & 7\end{pmatrix} = \begin{pmatrix}3.5 & 1.5\\1.5 & 3.5\end{pmatrix}
+%\end{align*}
+%
+%%As usual, we can check with \href{https://goo.gl/v8d4Yg}{Wolfram Alpha} to see we haven't made any mistakes. You may get $-\U$ instead of $\U$. The negatives cancel out, so the SVD can work out both ways.
+%}{}
 
 \end{document}

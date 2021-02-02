@@ -1,5 +1,15 @@
-\usepackage{color}
-\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\usepackage{xcolor}
+
+\newcommand{\red}[1]{{\textcolor{Red}{#1}}}
+\definecolor{myred}{HTML}{C82506}
+\definecolor{myblue}{HTML}{0365C0}
+\definecolor{mygreen}{HTML}{00882B}
+\definecolor{mydarkgreen}{HTML}{0B5D18}
+\definecolor{myorange}{HTML}{DE6A10}
+\definecolor{mypurple}{HTML}{773F9B}
+\definecolor{myyellow}{HTML}{DCBD23}
+\definecolor{mygray}{HTML}{999999}
+
 
 \usepackage{graphicx}
 \usepackage{amsmath}
@@ -8,7 +18,7 @@
 \usepackage{charter}
 \usepackage{exercise}
 \PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
-\hypersetup{colorlinks=true,linkcolor=DarkRed,urlcolor=DarkRed}
+\hypersetup{colorlinks=true,linkcolor=myred,urlcolor=myred}
 \usepackage{float}
 \usepackage{enumitem}
 \usepackage{bm}
@@ -45,27 +55,17 @@
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
 
-\newcommand{\red}[1]{{\textcolor{Red}{#1}}}
-\definecolor{myred}{HTML}{C82506}
-\definecolor{myblue}{HTML}{0365C0}
-\definecolor{mygreen}{HTML}{00882B}
-\definecolor{mydarkgreen}{HTML}{0B5D18}
-\definecolor{myorange}{HTML}{DE6A10}
-\definecolor{mypurple}{HTML}{773F9B}
-\definecolor{myyellow}{HTML}{DCBD23}
+\newcommand{\rc}[1]{{\textcolor{myred}{#1}}}
+\newcommand{\gc}[1]{{\textcolor{mygreen}{#1}}}
+\newcommand{\dgc}[1]{{\textcolor{mydarkgreen}{#1}}}
+\newcommand{\bc}[1]{{\textcolor{myblue}{#1}}}
+\newcommand{\kc}[1]{{\textcolor{mygray}{#1}}}
+\newcommand{\oc}[1]{{\textcolor{myorange}{#1}}}
+\newcommand{\pc}[1]{{\textcolor{mypurple}{#1}}}
+\newcommand{\yc}[1]{{\textcolor{myyellow}{#1}}}
 
-\newcommand{\rc}[1]{{\textcolor{myred}{ #1 }}}
-\newcommand{\gc}[1]{{\textcolor{mygreen}{ #1 }}}
-\newcommand{\dgc}[1]{{\textcolor{mydarkgreen}{ #1 }}}
-\newcommand{\bc}[1]{{\textcolor{myblue}{ #1 }}}
-\newcommand{\kc}[1]{{\textcolor{Gray}{ #1 }}}
-\newcommand{\oc}[1]{{\textcolor{myorange}{ #1 }}}
-\newcommand{\pc}[1]{{\textcolor{mypurple}{ #1 }}}
-\newcommand{\yc}[1]{{\textcolor{myyellow}{ #1 }}}
-
-%\newcommand{\ans}[2]{{\leavevmode\color{mydarkgreen}#2}} % no answers
+% \newcommand{\ans}[2]{{\leavevmode\color{mydarkgreen}#2}} % no answers
 \newcommand{\ans}[2]{{\leavevmode\color{mydarkgreen}#1}} % answers
-
 
 \newcommand{\kp}{{\kc{\partial}}}
 % Exam questions
@@ -79,6 +79,7 @@
 % Homework questions
 \newcommand{\qu}[0]{%
   \addtocounter{Question}{1}%
+  \vspace{3mm}
   \noindent \textbf{question \theQuestion:}
 }
 
